@@ -60,7 +60,6 @@ import {
   createJob,
   updateJob,
   publishJob,
-  validateJobForm,
   type JobFormData,
   type PostFormItem,
   type VacancyFormItem,
@@ -73,6 +72,7 @@ import {
   type HowToApplyFormItem,
   type FaqFormItem,
 } from '@/lib/admin-actions';
+import { validateJobForm } from '@/lib/admin-validation';
 
 interface Props {
   mode: 'create' | 'edit';
