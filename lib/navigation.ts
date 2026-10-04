@@ -3,10 +3,9 @@ import type { NavItem } from './types';
 export const PUBLIC_NAV: NavItem[] = [
   { label: 'Home', href: '/' },
   { label: 'Jobs', href: '/jobs' },
+  { label: 'Admit Cards', href: '/admit-cards' },
   { label: 'Exams', href: '/exams' },
   { label: 'Results', href: '/results' },
-  { label: 'Admit Cards', href: '/admit-cards' },
-  { label: 'Answer Keys', href: '/answer-keys' },
   { label: 'Admissions', href: '/admissions' },
   { label: 'Tools', href: '/tools' },
 ];
