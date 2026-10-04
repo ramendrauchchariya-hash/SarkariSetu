@@ -69,17 +69,40 @@ function slugifyDepartment(value: string): string {
     .replace(/^-+|-+$/g, '');
 }
 
-function departmentMatches(value: string | null, selected: string[]): boolean {
-  if (!value) return false;
-  const actual = slugifyDepartment(value);
+function departmentMatches(
+  department: string | null,
+  organization: { slug: string; name: string } | null,
+  selected: string[]
+): boolean {
+  const departmentSlug = department ? slugifyDepartment(department) : '';
+  const organizationSlug = organization?.slug?.toLowerCase() ?? '';
+  const organizationName = organization?.name ? slugifyDepartment(organization.name) : '';
+
   return selected.some((candidate) => {
-    if (candidate === actual) return true;
-    if (candidate === 'banking' && actual.startsWith('banking-')) return true;
-    if (candidate === 'psu' && actual.startsWith('psu-')) return true;
+    if (candidate === departmentSlug || candidate === organizationSlug) return true;
+
+    // Broad department filters should also include more specific live values.
+    if (candidate === 'banking' && (
+      departmentSlug.startsWith('banking-') ||
+      organizationSlug.includes('bank') ||
+      organizationName.includes('bank')
+    )) return true;
+
+    if (candidate === 'psu' && departmentSlug.startsWith('psu-')) return true;
+
+    if (candidate === 'upsc' && (
+      organizationSlug === 'upsc' ||
+      organizationName.includes('union-public-service-commission')
+    )) return true;
+
+    if (candidate === 'ssc' && (
+      organizationSlug === 'ssc' ||
+      organizationName.includes('staff-selection-commission')
+    )) return true;
+
     return false;
   });
 }
-
 function escapeSearch(value: string): string {
   return value.trim().toLowerCase();
 }
@@ -211,7 +234,7 @@ export async function serverGetJobsListing(
       if (!haystack.includes(q)) return false;
     }
 
-    if (departments.length && !departmentMatches(recruitment.department, departments)) return false;
+    if (departments.length && !departmentMatches(recruitment.department, recruitment.organization, departments)) return false;
     if (jobTypes.length && !jobTypes.includes(recruitment.job_type ?? '')) return false;
 
     if (qualifications.length) {
