@@ -48,14 +48,26 @@ function mapJobType(t: string | null): JobType {
 
 function listingMeta(r: RecruitmentWithOrg): { posts: number; salary: string } {
   const raw = r as unknown as {
-    posts?: Array<{ id: string; salary_min: number | null; salary_max: number | null }>;
+    posts?: Array<{
+      id: string;
+      salary_min: number | null;
+      salary_max: number | null;
+      vacancies?: Array<{ vacancy_count: number | null }>;
+    }>;
   };
   const posts = raw.posts ?? [];
+  const vacancyTotal = posts.reduce(
+    (sum, post) => sum + (post.vacancies ?? []).reduce(
+      (postSum, vacancy) => postSum + (vacancy.vacancy_count ?? 0),
+      0
+    ),
+    0
+  );
   const salaryValues = posts
     .flatMap((p) => [p.salary_min, p.salary_max])
     .filter((v): v is number => typeof v === 'number' && v > 0);
 
-  if (salaryValues.length === 0) return { posts: posts.length, salary: '—' };
+  if (salaryValues.length === 0) return { posts: vacancyTotal, salary: '—' };
 
   const min = Math.min(...salaryValues);
   const max = Math.max(...salaryValues);
