@@ -43,6 +43,8 @@ type DbPost = {
 };
 
 type DbRecruitment = Record<string, unknown> & {
+  organization?: { id: string; name: string; slug: string; short_name: string | null; official_website_url: string | null } | null;
+  categories?: Array<{ category: { id: string; name: string; slug: string } | null }>;
   posts?: DbPost[];
 };
 
