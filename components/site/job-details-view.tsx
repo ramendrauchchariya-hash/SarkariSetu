@@ -219,10 +219,12 @@ export function JobDetailsView({ job, relatedJobs: relatedJobsProp = [] }: JobDe
 
             {/* Action buttons */}
             <div className="flex flex-wrap items-center gap-2">
-              {canApply ? (
-                <Button size="lg" className="gap-2">
-                  <ExternalLink className="h-4 w-4" />
-                  Apply Now
+              {canApply && applicationLink ? (
+                <Button asChild size="lg" className="gap-2">
+                  <a href={applicationLink} target="_blank" rel="noopener noreferrer">
+                    <ExternalLink className="h-4 w-4" />
+                    Apply Now
+                  </a>
                 </Button>
               ) : (
                 <Button size="lg" disabled className="gap-2">
@@ -642,10 +644,12 @@ export function JobDetailsView({ job, relatedJobs: relatedJobsProp = [] }: JobDe
                       )}
                     </p>
                   </div>
-                  {canApply ? (
-                    <Button className="w-full gap-2">
-                      <ExternalLink className="h-4 w-4" />
-                      Apply Now
+                  {canApply && applicationLink ? (
+                    <Button asChild className="w-full gap-2">
+                      <a href={applicationLink} target="_blank" rel="noopener noreferrer">
+                        <ExternalLink className="h-4 w-4" />
+                        Apply Now
+                      </a>
                     </Button>
                   ) : (
                     <Button className="w-full" disabled>
@@ -739,7 +743,7 @@ export function JobDetailsView({ job, relatedJobs: relatedJobsProp = [] }: JobDe
       </div>
 
       {/* Sticky mobile apply bar */}
-      {canApply && (
+      {canApply && applicationLink && (
         <div className="sticky bottom-0 z-30 border-t bg-background/95 p-3 shadow-lg backdrop-blur supports-[backdrop-filter]:bg-background/80 lg:hidden">
           <div className="flex items-center gap-2">
             <div className="min-w-0 flex-1">
@@ -754,9 +758,11 @@ export function JobDetailsView({ job, relatedJobs: relatedJobsProp = [] }: JobDe
               </p>
             </div>
             <SaveJobButton jobId={job.id} size="sm" />
-            <Button size="sm" className="gap-2">
-              <ExternalLink className="h-4 w-4" />
-              Apply Now
+            <Button asChild size="sm" className="gap-2">
+              <a href={applicationLink} target="_blank" rel="noopener noreferrer">
+                <ExternalLink className="h-4 w-4" />
+                Apply Now
+              </a>
             </Button>
           </div>
         </div>
