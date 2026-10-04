@@ -1,4 +1,5 @@
 import type { ListingStatus, ResultType } from './types';
+import { daysUntilDeadline } from './recruitment-status';
 
 export function formatDate(
   dateStr: string,
@@ -10,9 +11,9 @@ export function formatDate(
 }
 
 export function daysUntil(dateStr: string): number {
-  const target = new Date(dateStr).getTime();
-  const now = Date.now();
-  return Math.ceil((target - now) / (1000 * 60 * 60 * 24));
+  // Use India calendar days so a date-only deadline never changes meaning
+  // based on the viewer's local timezone or time of day.
+  return daysUntilDeadline(dateStr);
 }
 
 export const statusConfig: Record<
