@@ -344,8 +344,8 @@ export async function serverGetHomepageBrowseOptions(limit = 9): Promise<{
     .slice(0, limit);
 
   return {
-    departments: sortOptions([...departmentCounts.values()]),
-    organizations: sortOptions([...organizationCounts.values()]),
+    departments: sortOptions(Array.from(departmentCounts.values())),
+    organizations: sortOptions(Array.from(organizationCounts.values())),
   };
 }
 
