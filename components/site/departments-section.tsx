@@ -18,30 +18,26 @@ export function DepartmentsSection({ departments, organizations }: DepartmentsSe
           description="Explore live opportunities grouped by the departments and organizations currently recruiting."
           viewAllHref="/jobs"
         />
-        {departments.length > 0 && (
-          <>
-            <h3 className="mb-3 text-sm font-semibold text-muted-foreground">Departments</h3>
-            <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-5 lg:grid-cols-9">
-              {departments.map((dept) => (
-                <DepartmentCard key={`department-${dept.slug}`} department={dept} />
-              ))}
-            </div>
-          </>
-        )}
-        {organizations.length > 0 && (
-          <>
-            <h3 className="mb-3 mt-8 text-sm font-semibold text-muted-foreground">Organizations</h3>
-            <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-5 lg:grid-cols-9">
-              {organizations.map((organization) => (
-                <DepartmentCard
-                  key={`organization-${organization.slug}`}
-                  department={organization}
-                  href={`/jobs?q=${encodeURIComponent(organization.label)}`}
-                />
-              ))}
-            </div>
-          </>
-        )}
+        <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-5 lg:grid-cols-9">
+          {[
+            ...departments.map((department) => ({
+              ...department,
+              key: `department-${department.slug}`,
+              href: `/jobs?department=${department.slug}`,
+            })),
+            ...organizations.map((organization) => ({
+              ...organization,
+              key: `organization-${organization.slug}`,
+              href: `/jobs?q=${encodeURIComponent(organization.label)}`,
+            })),
+          ].map((item) => (
+            <DepartmentCard
+              key={item.key}
+              department={item}
+              href={item.href}
+            />
+          ))}
+        </div>
       </div>
     </section>
   );
