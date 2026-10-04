@@ -1,7 +1,6 @@
 /**
  * Mappers that convert Supabase database rows into the UI-facing types
- * defined in lib/types.ts. This lets us use the existing components
- * without redesigning them.
+ * defined in lib/types.ts.
  */
 
 import type {
@@ -35,7 +34,6 @@ import type {
   ListingStatus,
 } from './types';
 import { computeRecruitmentStatus } from './recruitment-status';
-import { formatDate } from './format';
 
 const jobTypeMap: Record<string, JobType> = {
   permanent: 'permanent',
@@ -48,13 +46,26 @@ function mapJobType(t: string | null): JobType {
   return jobTypeMap[t ?? 'permanent'] ?? 'permanent';
 }
 
-const resultTypeLabelMap: Record<string, string> = {
-  result: 'Exam Result',
-  'merit-list': 'Merit List',
-  cutoff: 'Cutoff',
-  scorecard: 'Scorecard',
-  'final-result': 'Final Result',
-};
+function listingMeta(r: RecruitmentWithOrg): { posts: number; salary: string } {
+  const raw = r as unknown as {
+    posts?: Array<{ id: string; salary_min: number | null; salary_max: number | null }>;
+  };
+  const posts = raw.posts ?? [];
+  const salaryValues = posts
+    .flatMap((p) => [p.salary_min, p.salary_max])
+    .filter((v): v is number => typeof v === 'number' && v > 0);
+
+  if (salaryValues.length === 0) return { posts: posts.length, salary: '—' };
+
+  const min = Math.min(...salaryValues);
+  const max = Math.max(...salaryValues);
+  return {
+    posts: posts.length,
+    salary: min === max
+      ? `₹${min.toLocaleString('en-IN')}`
+      : `₹${min.toLocaleString('en-IN')} – ₹${max.toLocaleString('en-IN')}`,
+  };
+}
 
 export function recruitmentToJobPosting(r: RecruitmentWithOrg): JobPosting {
   const status = computeRecruitmentStatus(r);
@@ -88,12 +99,7 @@ export function recruitmentWithVacanciesToJobPosting(
   salaryMax: number
 ): JobPosting {
   const base = recruitmentToJobPosting(r);
-  return {
-    ...base,
-    vacancies: totalVacancies,
-    salaryMin,
-    salaryMax,
-  };
+  return { ...base, vacancies: totalVacancies, salaryMin, salaryMax };
 }
 
 export function recruitmentToJobListing(r: RecruitmentWithOrg): JobListing {
@@ -103,6 +109,9 @@ export function recruitmentToJobListing(r: RecruitmentWithOrg): JobListing {
     status === 'closing-soon' ? 'closing-soon' :
     status === 'closed' ? 'closed' :
     'upcoming';
+
+  const meta = listingMeta(r);
+
   return {
     id: r.slug,
     title: r.title,
@@ -110,17 +119,16 @@ export function recruitmentToJobListing(r: RecruitmentWithOrg): JobListing {
     category: (r.categories[0]?.slug ?? 'graduate') as import('./types').CategorySlug,
     location: r.location_type === 'state-specific' ? 'State Specific' : 'All India',
     status: listingStatus,
-    posts: 0,
-    salary: '—',
+    posts: meta.posts,
+    salary: meta.salary,
     applicationDeadline: r.application_end ?? '',
     postedDate: r.posted_date ?? r.created_at,
     qualification: r.categories.map((c) => c.name).join(', ') || 'Various',
+    officialApplicationUrl: r.official_application_url ?? null,
   };
 }
 
-export function recruitmentDetailToJobDetails(
-  r: RecruitmentDetail
-): JobDetails {
+export function recruitmentDetailToJobDetails(r: RecruitmentDetail): JobDetails {
   const status = computeRecruitmentStatus(r) as JobStatus;
   const posts = r.posts;
   const vacancies = r.vacancies;
@@ -136,7 +144,6 @@ export function recruitmentDetailToJobDetails(
   });
 
   const totalVacancies = vacancyBreakdown.reduce((sum, v) => sum + v.count, 0);
-
   const firstPost = posts[0];
   const salaryMin = firstPost?.salary_min ?? 0;
   const salaryMax = firstPost?.salary_max ?? 0;
@@ -160,25 +167,18 @@ export function recruitmentDetailToJobDetails(
     subjects: examPatternSubjects,
     totalQuestions: examPatternSubjects.reduce((s, sub) => s + sub.questions, 0),
     totalMarks: examPatternSubjects.reduce((s, sub) => s + sub.marks, 0),
-    duration: r.exam_patterns[0]?.duration_minutes
-      ? `${r.exam_patterns[0].duration_minutes} min`
-      : '—',
+    duration: r.exam_patterns[0]?.duration_minutes ? `${r.exam_patterns[0].duration_minutes} min` : '—',
     negativeMarking: r.exam_patterns[0]?.negative_marking ?? null,
     mode: r.exam_patterns[0]?.mode ?? '—',
   } : null;
 
-  const documentsRequired: string[] = r.documents_required.map((d: DocumentRequired) => d.document_name);
-
-  const howToApply: string[] = r.how_to_apply
+  const documentsRequired = r.documents_required.map((d: DocumentRequired) => d.document_name);
+  const howToApply = r.how_to_apply
     .sort((a: HowToApplyStep, b: HowToApplyStep) => a.step_number - b.step_number)
     .map((s: HowToApplyStep) => s.title);
-
   const faqs: FaqItem[] = r.faqs
     .sort((a: Faq, b: Faq) => a.display_order - b.display_order)
-    .map((f: Faq) => ({
-      question: f.question,
-      answer: f.answer,
-    }));
+    .map((f: Faq) => ({ question: f.question, answer: f.answer }));
 
   const officialLinks: OfficialLink[] = [
     r.official_notification_url ? { label: 'Official Notification', url: r.official_notification_url, type: 'notification' as const } : null,
@@ -243,9 +243,7 @@ export function recruitmentDetailToJobDetails(
   };
 }
 
-export function dbResultToResultListing(
-  r: Result & { organization_name: string | null }
-): ResultListing {
+export function dbResultToResultListing(r: Result & { organization_name: string | null }): ResultListing {
   return {
     id: r.slug,
     title: r.title,
@@ -256,9 +254,7 @@ export function dbResultToResultListing(
   };
 }
 
-export function dbAdmitCardToAdmitCardListing(
-  r: AdmitCard & { organization_name: string | null }
-): AdmitCardListing {
+export function dbAdmitCardToAdmitCardListing(r: AdmitCard & { organization_name: string | null }): AdmitCardListing {
   return {
     id: r.slug,
     title: r.title,
