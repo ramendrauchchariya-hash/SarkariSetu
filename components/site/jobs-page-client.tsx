@@ -29,6 +29,7 @@ import {
 } from '@/lib/job-filter-logic';
 import type { SortOption } from '@/lib/job-filters';
 import type { JobPosting } from '@/lib/types';
+import { JOBS_PER_PAGE } from '@/lib/job-filters';
 
 interface JobsPageClientProps {
   jobs: JobPosting[];
@@ -98,7 +99,7 @@ export function JobsPageClient({ jobs, total, totalPages, currentPage }: JobsPag
     }
   };
 
-  const startIdx = (currentPage - 1) * jobs.length;
+  const startIdx = total === 0 ? 0 : (currentPage - 1) * JOBS_PER_PAGE;
   const endIdx = Math.min(startIdx + jobs.length, total);
 
   return (
