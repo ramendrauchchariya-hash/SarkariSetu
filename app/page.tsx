@@ -19,6 +19,7 @@ import {
   serverGetPublishedAdmitCards,
   serverGetCategories,
   serverGetRecruitmentCountByCategory,
+  serverGetHomepageStats,
 } from '@/lib/data-server';
 import { recruitmentToJobListing, dbResultToResultListing, dbAdmitCardToAdmitCardListing } from '@/lib/data-mappers';
 import { examTools, guides, departments as staticDepartments } from '@/lib/static-content';
@@ -27,13 +28,14 @@ import type { Category, Department, ExamListing, JobListing, ResultListing, Admi
 export const dynamic = 'force-dynamic';
 
 async function getHomepageData() {
-  const [latestRecruitments, closingSoonRecruitments, results, admitCards, categories, categoryCounts] = await Promise.all([
+  const [latestRecruitments, closingSoonRecruitments, results, admitCards, categories, categoryCounts, homepageStats] = await Promise.all([
     serverGetLatestRecruitments(6),
     serverGetClosingSoon(6),
     serverGetPublishedResults(5),
     serverGetPublishedAdmitCards(4),
     serverGetCategories(),
     serverGetRecruitmentCountByCategory(),
+    serverGetHomepageStats(),
   ]);
 
   const latestJobs: JobListing[] = latestRecruitments.map(recruitmentToJobListing);
@@ -64,6 +66,7 @@ async function getHomepageData() {
     categoryList,
     departments,
     upcomingExams,
+    homepageStats,
   };
 }
 
@@ -72,7 +75,7 @@ export default async function HomePage() {
 
   return (
     <SiteShell>
-      <HeroSection />
+      <HeroSection latestJobs={data.latestJobs} stats={data.homepageStats} />
       <CategoriesSection categories={data.categoryList} />
       <DepartmentsSection departments={data.departments} />
       <LatestJobsSection jobs={data.latestJobs} />
