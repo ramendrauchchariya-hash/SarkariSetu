@@ -171,11 +171,22 @@ export async function serverGetAllPublishedSlugs(): Promise<string[]> {
   return data.map((r) => r.slug);
 }
 
+const LISTING_SELECT = `
+  *,
+  organization:organizations(
+    id, name, slug, short_name, official_website_url
+  ),
+  categories:recruitment_categories(
+    category:categories(id, name, slug)
+  ),
+  posts:posts(id, salary_min, salary_max)
+`;
+
 export async function serverGetClosingSoon(limit = 6): Promise<RecruitmentWithOrg[]> {
   const today = new Date().toLocaleDateString('en-CA', { timeZone: 'Asia/Kolkata' });
   const { data } = await supabaseAdmin
     .from('recruitments')
-    .select(RECRUITMENT_SELECT)
+    .select(LISTING_SELECT)
     .eq('is_published', true)
     .eq('is_archived', false)
     .gte('application_end', today)
@@ -189,7 +200,7 @@ export async function serverGetClosingSoon(limit = 6): Promise<RecruitmentWithOr
 export async function serverGetLatestRecruitments(limit = 6): Promise<RecruitmentWithOrg[]> {
   const { data } = await supabaseAdmin
     .from('recruitments')
-    .select(RECRUITMENT_SELECT)
+    .select(LISTING_SELECT)
     .eq('is_published', true)
     .eq('is_archived', false)
     .order('posted_date', { ascending: false, nullsFirst: false })
@@ -290,7 +301,6 @@ export async function serverGetHomepageStats(): Promise<{
       .eq('is_published', true),
     supabaseAdmin.from('profiles').select('id', { count: 'exact', head: true }),
   ]);
-
   return {
     activeJobs: jobs.count ?? 0,
     results: results.count ?? 0,
