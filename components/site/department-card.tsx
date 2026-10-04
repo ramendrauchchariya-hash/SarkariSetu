@@ -7,15 +7,16 @@ import type { Department } from '@/lib/types';
 interface DepartmentCardProps {
   department: Department;
   className?: string;
+  href?: string;
 }
 
-export function DepartmentCard({ department, className }: DepartmentCardProps) {
+export function DepartmentCard({ department, className, href }: DepartmentCardProps) {
   const Icon = (Icons[department.icon as keyof typeof Icons] ??
     Icons.Building2) as Icons.LucideIcon;
 
   return (
     <Link
-      href={`/jobs?department=${department.slug}`}
+      href={href ?? `/jobs?department=${department.slug}`}
       className={cn(
         'group flex flex-col items-center gap-2.5 rounded-xl border bg-card p-4 text-center shadow-sm transition-all hover:-translate-y-0.5 hover:border-primary/30 hover:shadow-card-hover',
         className
