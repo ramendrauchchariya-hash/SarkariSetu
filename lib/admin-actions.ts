@@ -467,6 +467,10 @@ export async function unarchiveJob(id: string): Promise<{ success: boolean; erro
 export async function verifyJob(id: string, status: string): Promise<{ success: boolean; error?: string }> {
   const admin = await requireAdmin();
 
+  if (!['unverified', 'pending', 'verified'].includes(status)) {
+    return { success: false, error: 'Invalid verification status.' };
+  }
+
   const { data: oldData } = await supabaseAdmin
     .from('recruitments')
     .select('*')
