@@ -47,6 +47,7 @@ export interface JobListing {
   applicationDeadline: string;
   postedDate: string;
   qualification: string;
+  officialApplicationUrl?: string | null;
 }
 
 export interface ExamListing {
@@ -59,8 +60,6 @@ export interface ExamListing {
   applicationStatus: ListingStatus;
   posts: number;
 }
-
-export type ResultType = 'exam-result' | 'merit-list' | 'cutoff' | 'scorecard' | 'final-result';
 
 export interface ResultListing {
   id: string;
