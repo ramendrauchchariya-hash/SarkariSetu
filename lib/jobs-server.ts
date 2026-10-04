@@ -60,6 +60,26 @@ function toRecruitmentWithOrg(r: DbRecruitment): RecruitmentWithOrg {
   };
 }
 
+function slugifyDepartment(value: string): string {
+  return value
+    .trim()
+    .toLowerCase()
+    .replace(/&/g, ' and ')
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/^-+|-+$/g, '');
+}
+
+function departmentMatches(value: string | null, selected: string[]): boolean {
+  if (!value) return false;
+  const actual = slugifyDepartment(value);
+  return selected.some((candidate) => {
+    if (candidate === actual) return true;
+    if (candidate === 'banking' && actual.startsWith('banking-')) return true;
+    if (candidate === 'psu' && actual.startsWith('psu-')) return true;
+    return false;
+  });
+}
+
 function escapeSearch(value: string): string {
   return value.trim().toLowerCase();
 }
@@ -191,7 +211,7 @@ export async function serverGetJobsListing(
       if (!haystack.includes(q)) return false;
     }
 
-    if (departments.length && !departments.includes(recruitment.department ?? '')) return false;
+    if (departments.length && !departmentMatches(recruitment.department, departments)) return false;
     if (jobTypes.length && !jobTypes.includes(recruitment.job_type ?? '')) return false;
 
     if (qualifications.length) {
