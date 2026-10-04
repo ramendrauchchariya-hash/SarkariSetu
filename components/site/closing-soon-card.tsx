@@ -22,7 +22,6 @@ export function ClosingSoonCard({ job, className }: ClosingSoonCardProps) {
         className
       )}
     >
-      {/* Days remaining badge */}
       <div className="mb-3 flex items-center gap-2">
         <span
           className={cn(
@@ -64,12 +63,21 @@ export function ClosingSoonCard({ job, className }: ClosingSoonCardProps) {
         </div>
       </Link>
 
-      <Button asChild size="sm" className="mt-4 w-full gap-1.5">
-        <Link href={`/jobs/${job.id}`}>
-          Apply Now
-          <ArrowRight className="h-3.5 w-3.5" />
-        </Link>
-      </Button>
+      {job.officialApplicationUrl ? (
+        <Button asChild size="sm" className="mt-4 w-full gap-1.5">
+          <a href={job.officialApplicationUrl} target="_blank" rel="noopener noreferrer">
+            Apply Now
+            <ArrowRight className="h-3.5 w-3.5" />
+          </a>
+        </Button>
+      ) : (
+        <Button asChild size="sm" variant="outline" className="mt-4 w-full gap-1.5">
+          <Link href={`/jobs/${job.id}`}>
+            View Details
+            <ArrowRight className="h-3.5 w-3.5" />
+          </Link>
+        </Button>
+      )}
     </Card>
   );
 }
