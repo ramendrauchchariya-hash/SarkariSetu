@@ -23,6 +23,7 @@ import {
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import { supabase } from '@/lib/supabase-client';
+import { AdminSessionSync } from './admin-session-sync';
 
 interface NavItem {
   label: string;
@@ -61,6 +62,7 @@ export function AdminShell({
 
   const handleLogout = async () => {
     await supabase.auth.signOut();
+    await fetch('/api/admin/session', { method: 'DELETE', credentials: 'same-origin' });
     router.push('/admin/login');
   };
 
@@ -130,6 +132,7 @@ export function AdminShell({
 
   return (
     <div className="min-h-screen bg-muted/30">
+      <AdminSessionSync />
       {/* Desktop sidebar */}
       <aside className="fixed inset-y-0 left-0 z-40 hidden w-64 border-r bg-card lg:block">
         {sidebar}
