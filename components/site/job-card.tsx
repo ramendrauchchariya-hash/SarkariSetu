@@ -56,7 +56,7 @@ export function JobCard({ job, className, showBookmark = true }: JobCardProps) {
         </span>
         <span className="flex items-center gap-1.5">
           <Users className="h-3.5 w-3.5 shrink-0" />
-          <span>{formatPosts(job.posts)} posts</span>
+          <span>{formatPosts(job.posts)} vacancies</span>
         </span>
         <span className="flex items-center gap-1.5">
           <CalendarClock className="h-3.5 w-3.5 shrink-0" />
