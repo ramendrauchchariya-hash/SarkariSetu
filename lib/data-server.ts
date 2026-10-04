@@ -275,6 +275,30 @@ export async function serverGetRecruitmentCountByCategory(): Promise<Map<string,
   return map;
 }
 
+export async function serverGetHomepageStats(): Promise<{
+  activeJobs: number;
+  results: number;
+  admitCards: number;
+  users: number;
+}> {
+  const [jobs, results, admitCards, users] = await Promise.all([
+    supabaseAdmin.from('recruitments').select('id', { count: 'exact', head: true })
+      .eq('is_published', true).eq('is_archived', false),
+    supabaseAdmin.from('results').select('id', { count: 'exact', head: true })
+      .eq('is_published', true),
+    supabaseAdmin.from('admit_cards').select('id', { count: 'exact', head: true })
+      .eq('is_published', true),
+    supabaseAdmin.from('profiles').select('id', { count: 'exact', head: true }),
+  ]);
+
+  return {
+    activeJobs: jobs.count ?? 0,
+    results: results.count ?? 0,
+    admitCards: admitCards.count ?? 0,
+    users: users.count ?? 0,
+  };
+}
+
 export async function serverGetTotalVacancies(r: RecruitmentWithOrg): Promise<{ total: number; salaryMin: number; salaryMax: number }> {
   const { data: posts } = await supabaseAdmin
     .from('posts')
