@@ -3,6 +3,9 @@ import type { Metadata } from 'next';
 import { JobsPageClient } from '@/components/site/jobs-page-client';
 import { JobSkeletonList } from '@/components/site/job-skeleton';
 import { SiteShell } from '@/components/site/site-shell';
+import { serverGetJobsListing } from '@/lib/jobs-server';
+import type { SortOption } from '@/lib/job-filters';
+import { JOBS_PER_PAGE } from '@/lib/job-filters';
 
 export const metadata: Metadata = {
   title: 'Government Jobs — SarkariSetu',
@@ -15,22 +18,46 @@ export const metadata: Metadata = {
   },
 };
 
-export default function JobsPage() {
+interface PageProps {
+  searchParams: {
+    q?: string;
+    page?: string;
+    sort?: string;
+    department?: string;
+    status?: string;
+    jobType?: string;
+    qualification?: string;
+  };
+}
+
+export default async function JobsPage({ searchParams }: PageProps) {
+  const page = parseInt(searchParams.page ?? '1', 10) || 1;
+  const sort = (searchParams.sort as SortOption) ?? 'latest';
+  const search = searchParams.q ?? '';
+  const departments = searchParams.department ? searchParams.department.split(',').filter(Boolean) : [];
+  const statuses = searchParams.status ? searchParams.status.split(',').filter(Boolean) : [];
+  const jobTypes = searchParams.jobType ? searchParams.jobType.split(',').filter(Boolean) : [];
+  const qualifications = searchParams.qualification ? searchParams.qualification.split(',').filter(Boolean) : [];
+
+  const { jobs, total, totalPages } = await serverGetJobsListing({
+    page,
+    pageSize: JOBS_PER_PAGE,
+    search,
+    departments,
+    statuses,
+    jobTypes,
+    qualifications,
+    sort,
+  });
+
   return (
-    <Suspense
-      fallback={
-        <SiteShell>
-          <div className="container-page py-8">
-            <div className="mb-6">
-              <div className="h-8 w-48 animate-pulse rounded bg-muted" />
-              <div className="mt-2 h-4 w-72 animate-pulse rounded bg-muted" />
-            </div>
-            <JobSkeletonList count={5} />
-          </div>
-        </SiteShell>
-      }
-    >
-      <JobsPageClient />
-    </Suspense>
+    <SiteShell>
+      <JobsPageClient
+        jobs={jobs}
+        total={total}
+        totalPages={totalPages}
+        currentPage={page}
+      />
+    </SiteShell>
   );
 }

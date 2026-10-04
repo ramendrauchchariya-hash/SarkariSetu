@@ -4,7 +4,6 @@ import { useState, useMemo, useCallback, useEffect } from 'react';
 import { useSearchParams, useRouter, usePathname } from 'next/navigation';
 import { SlidersHorizontal, Search } from 'lucide-react';
 
-import { SiteShell } from '@/components/site/site-shell';
 import { JobListingCard } from '@/components/site/job-listing-card';
 import { JobFiltersSidebar, type JobFilterState } from '@/components/site/job-filters-sidebar';
 import { FilterChips } from '@/components/site/filter-chips';
@@ -23,24 +22,26 @@ import {
 } from '@/components/ui/sheet';
 
 import {
-  filterAndSortJobs,
   buildActiveFilterChips,
   filtersToSearchParams,
   searchParamsToFilters,
   EMPTY_FILTERS,
-  jobPostings,
-  JOBS_PER_PAGE,
 } from '@/lib/job-filter-logic';
 import type { SortOption } from '@/lib/job-filters';
+import type { JobPosting } from '@/lib/types';
 
-const TOTAL_OPPORTUNITIES = '1,250+';
+interface JobsPageClientProps {
+  jobs: JobPosting[];
+  total: number;
+  totalPages: number;
+  currentPage: number;
+}
 
-export function JobsPageClient() {
+export function JobsPageClient({ jobs, total, totalPages, currentPage }: JobsPageClientProps) {
   const searchParams = useSearchParams();
   const router = useRouter();
   const pathname = usePathname();
 
-  // Initialize state from URL params
   const initial = useMemo(
     () => searchParamsToFilters(new URLSearchParams(searchParams.toString())),
     [searchParams]
@@ -49,11 +50,8 @@ export function JobsPageClient() {
   const [filters, setFilters] = useState<JobFilterState>(initial.filters);
   const [search, setSearch] = useState(initial.search);
   const [sort, setSort] = useState<SortOption>(initial.sort);
-  const [currentPage, setCurrentPage] = useState(initial.page);
-  const [loading, setLoading] = useState(false);
   const [mobileFiltersOpen, setMobileFiltersOpen] = useState(false);
 
-  // Sync URL when state changes (debounced via microtask)
   useEffect(() => {
     const params = filtersToSearchParams(filters, search, sort, currentPage);
     const queryString = params.toString();
@@ -61,21 +59,9 @@ export function JobsPageClient() {
     router.replace(newUrl, { scroll: false });
   }, [filters, search, sort, currentPage, pathname, router]);
 
-  // Simulate brief loading when filters change (for skeleton demo)
-  useEffect(() => {
-    setLoading(true);
-    const timer = setTimeout(() => setLoading(false), 200);
-    return () => clearTimeout(timer);
-  }, [filters, search, sort, currentPage]);
-
   const activeFilterCount = useMemo(
     () => Object.values(filters).reduce((sum, arr) => sum + arr.length, 0),
     [filters]
-  );
-
-  const { jobs, total, totalPages } = useMemo(
-    () => filterAndSortJobs(jobPostings, filters, search, sort, currentPage),
-    [filters, search, sort, currentPage]
   );
 
   const activeChips = useMemo(() => buildActiveFilterChips(filters), [filters]);
@@ -88,7 +74,6 @@ export function JobsPageClient() {
         : [...current, value];
       return { ...prev, [group]: updated };
     });
-    setCurrentPage(1);
   }, []);
 
   const removeFilter = useCallback((group: string, value: string) => {
@@ -96,32 +81,28 @@ export function JobsPageClient() {
       ...prev,
       [group]: prev[group as keyof JobFilterState].filter((v) => v !== value),
     }));
-    setCurrentPage(1);
   }, []);
 
   const clearAllFilters = useCallback(() => {
     setFilters(EMPTY_FILTERS);
     setSearch('');
-    setCurrentPage(1);
   }, []);
 
-  const handleSearch = (e: React.FormEvent) => {
-    e.preventDefault();
-    setCurrentPage(1);
-  };
-
   const handlePageChange = (page: number) => {
-    setCurrentPage(page);
+    const params = filtersToSearchParams(filters, search, sort, page);
+    const queryString = params.toString();
+    const newUrl = queryString ? `${pathname}?${queryString}` : pathname;
+    router.push(newUrl);
     if (typeof window !== 'undefined') {
       window.scrollTo({ top: 0, behavior: 'smooth' });
     }
   };
 
-  const startIdx = (currentPage - 1) * JOBS_PER_PAGE;
+  const startIdx = (currentPage - 1) * jobs.length;
   const endIdx = Math.min(startIdx + jobs.length, total);
 
   return (
-    <SiteShell>
+    <>
       {/* Page header */}
       <section className="border-b bg-muted/20">
         <div className="container-page py-8 sm:py-10">
@@ -134,7 +115,7 @@ export function JobsPageClient() {
             </p>
             <p className="mt-1 flex items-center gap-2 text-sm font-semibold text-primary">
               <span className="flex h-2 w-2 rounded-full bg-success animate-pulse-soft" />
-              {TOTAL_OPPORTUNITIES} opportunities
+              {total.toLocaleString('en-IN')} opportunities
             </p>
           </div>
         </div>
@@ -155,7 +136,11 @@ export function JobsPageClient() {
           <div className="min-w-0 flex-1">
             {/* Search bar */}
             <form
-              onSubmit={handleSearch}
+              onSubmit={(e) => {
+                e.preventDefault();
+                const params = filtersToSearchParams(filters, search, sort, 1);
+                router.replace(`${pathname}?${params.toString()}`);
+              }}
               className="flex w-full items-center gap-2 rounded-xl border bg-card p-1.5 shadow-sm focus-within:ring-2 focus-within:ring-ring focus-within:ring-offset-2"
               role="search"
             >
@@ -204,9 +189,15 @@ export function JobsPageClient() {
                 </SheetContent>
               </Sheet>
 
-              {/* Sort on mobile */}
               <div className="ml-auto">
-                <SortDropdown value={sort} onChange={(v) => { setSort(v); setCurrentPage(1); }} />
+                <SortDropdown
+                  value={sort}
+                  onChange={(v) => {
+                    setSort(v);
+                    const params = filtersToSearchParams(filters, search, v, currentPage);
+                    router.replace(`${pathname}?${params.toString()}`);
+                  }}
+                />
               </div>
             </div>
 
@@ -229,15 +220,20 @@ export function JobsPageClient() {
                 )}
               </p>
               <div className="hidden lg:block">
-                <SortDropdown value={sort} onChange={(v) => { setSort(v); setCurrentPage(1); }} />
+                <SortDropdown
+                  value={sort}
+                  onChange={(v) => {
+                    setSort(v);
+                    const params = filtersToSearchParams(filters, search, v, currentPage);
+                    router.replace(`${pathname}?${params.toString()}`);
+                  }}
+                />
               </div>
             </div>
 
-            {/* Job list / loading / empty */}
+            {/* Job list / empty */}
             <div className="mt-4">
-              {loading ? (
-                <JobSkeletonList count={Math.min(JOBS_PER_PAGE, 5)} />
-              ) : jobs.length === 0 ? (
+              {jobs.length === 0 ? (
                 <EmptyState
                   onClearFilters={clearAllFilters}
                   onBrowseAll={clearAllFilters}
@@ -252,7 +248,7 @@ export function JobsPageClient() {
             </div>
 
             {/* Pagination */}
-            {!loading && total > 0 && (
+            {total > 0 && (
               <div className="mt-8">
                 <Pagination
                   currentPage={currentPage}
@@ -264,6 +260,6 @@ export function JobsPageClient() {
           </div>
         </div>
       </div>
-    </SiteShell>
+    </>
   );
 }

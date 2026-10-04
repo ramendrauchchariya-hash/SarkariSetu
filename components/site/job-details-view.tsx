@@ -53,12 +53,12 @@ import {
   jobStatusVariant,
   jobTypeLabel,
 } from '@/lib/job-filters';
-import { jobPostings } from '@/lib/jobs-data';
-import type { JobDetails, OfficialLink } from '@/lib/types';
+import type { JobDetails, JobPosting, OfficialLink } from '@/lib/types';
 import { cn } from '@/lib/utils';
 
 interface JobDetailsViewProps {
   job: JobDetails;
+  relatedJobs?: JobPosting[];
 }
 
 function formatSalary(min: number, max: number): string {
@@ -75,7 +75,7 @@ function getOfficialLinkIcon(type: OfficialLink['type']) {
   return <Globe className="h-4 w-4" />;
 }
 
-export function JobDetailsView({ job }: JobDetailsViewProps) {
+export function JobDetailsView({ job, relatedJobs: relatedJobsProp = [] }: JobDetailsViewProps) {
   const daysLeft = daysUntil(job.applicationEnd);
   const isClosed = job.status === 'closed';
   const isClosingSoon = job.status === 'closing-soon';
@@ -119,14 +119,7 @@ export function JobDetailsView({ job }: JobDetailsViewProps) {
     { label: 'Result', date: job.resultDate },
   ].filter((d) => d.date !== null || ['Exam Date', 'Result'].includes(d.label));
 
-  // Related jobs (same department or qualification, exclude current)
-  const relatedJobs = jobPostings
-    .filter(
-      (j) =>
-        j.id !== job.id &&
-        (j.department === job.department || j.qualification === job.qualification)
-    )
-    .slice(0, 4);
+  const relatedJobs = relatedJobsProp.slice(0, 4);
 
   const quickOverview = [
     { icon: Building2, label: 'Organization', value: job.organization },

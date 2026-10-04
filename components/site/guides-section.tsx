@@ -1,8 +1,14 @@
 import { GuideCard } from './guide-card';
 import { SectionHeading } from './section-heading';
-import { guides } from '@/lib/mock-data';
+import type { GuideArticle } from '@/lib/types';
 
-export function GuidesSection() {
+interface GuidesSectionProps {
+  guides: GuideArticle[];
+}
+
+export function GuidesSection({ guides }: GuidesSectionProps) {
+  if (guides.length === 0) return null;
+
   return (
     <section className="py-12 sm:py-14">
       <div className="container-page">

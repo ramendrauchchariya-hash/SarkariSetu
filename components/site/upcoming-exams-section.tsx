@@ -1,8 +1,14 @@
 import { ExamTimelineItem } from './exam-card';
 import { SectionHeading } from './section-heading';
-import { upcomingExams } from '@/lib/mock-data';
+import type { ExamListing } from '@/lib/types';
 
-export function UpcomingExamsSection() {
+interface UpcomingExamsSectionProps {
+  exams: ExamListing[];
+}
+
+export function UpcomingExamsSection({ exams }: UpcomingExamsSectionProps) {
+  if (exams.length === 0) return null;
+
   return (
     <section className="py-12 sm:py-14">
       <div className="container-page">
@@ -13,7 +19,7 @@ export function UpcomingExamsSection() {
           viewAllLabel="View Exam Calendar"
         />
         <div className="space-y-3">
-          {upcomingExams.map((exam) => (
+          {exams.map((exam) => (
             <ExamTimelineItem key={exam.id} exam={exam} />
           ))}
         </div>

@@ -1,8 +1,14 @@
 import { AdmitCardCard } from './admit-card-card';
 import { SectionHeading } from './section-heading';
-import { admitCards } from '@/lib/mock-data';
+import type { AdmitCardListing } from '@/lib/types';
 
-export function AdmitCardsSection() {
+interface AdmitCardsSectionProps {
+  admitCards: AdmitCardListing[];
+}
+
+export function AdmitCardsSection({ admitCards }: AdmitCardsSectionProps) {
+  if (admitCards.length === 0) return null;
+
   return (
     <section className="border-y bg-muted/20 py-12 sm:py-14">
       <div className="container-page">

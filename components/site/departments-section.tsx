@@ -1,8 +1,14 @@
 import { DepartmentCard } from './department-card';
 import { SectionHeading } from './section-heading';
-import { departments } from '@/lib/mock-data';
+import type { Department } from '@/lib/types';
 
-export function DepartmentsSection() {
+interface DepartmentsSectionProps {
+  departments: Department[];
+}
+
+export function DepartmentsSection({ departments }: DepartmentsSectionProps) {
+  if (departments.length === 0) return null;
+
   return (
     <section className="border-y bg-muted/20 py-12 sm:py-14">
       <div className="container-page">
