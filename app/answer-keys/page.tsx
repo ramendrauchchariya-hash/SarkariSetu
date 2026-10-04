@@ -1,12 +1,5 @@
-import { ComingSoon } from '@/components/site/coming-soon';
-
-export const metadata = { title: 'Answer Keys' };
+import { notFound } from 'next/navigation';
 
 export default function AnswerKeysPage() {
-  return (
-    <ComingSoon
-      title="Answer Keys"
-      description="Access provisional and final answer keys for recent exams. Full listing coming soon."
-    />
-  );
+  notFound();
 }
