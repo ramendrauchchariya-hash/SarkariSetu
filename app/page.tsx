@@ -19,22 +19,24 @@ import {
   serverGetPublishedAdmitCards,
   serverGetCategories,
   serverGetRecruitmentCountByCategory,
+  serverGetHomepageBrowseOptions,
   serverGetHomepageStats,
 } from '@/lib/data-server';
 import { recruitmentToJobListing, dbResultToResultListing, dbAdmitCardToAdmitCardListing } from '@/lib/data-mappers';
-import { examTools, guides, departments as staticDepartments } from '@/lib/static-content';
+import { examTools, guides, categoryIconMap } from '@/lib/static-content';
 import type { Category, Department, ExamListing, JobListing, ResultListing, AdmitCardListing } from '@/lib/types';
 
 export const dynamic = 'force-dynamic';
 
 async function getHomepageData() {
-  const [latestRecruitments, closingSoonRecruitments, results, admitCards, categories, categoryCounts, homepageStats] = await Promise.all([
+  const [latestRecruitments, closingSoonRecruitments, results, admitCards, categories, categoryCounts, browseOptions, homepageStats] = await Promise.all([
     serverGetLatestRecruitments(6),
     serverGetClosingSoon(6),
     serverGetPublishedResults(5),
     serverGetPublishedAdmitCards(4),
     serverGetCategories(),
     serverGetRecruitmentCountByCategory(),
+    serverGetHomepageBrowseOptions(),
     serverGetHomepageStats(),
   ]);
 
@@ -46,14 +48,34 @@ async function getHomepageData() {
   const categoryList: Category[] = categories.map((c) => ({
     slug: c.slug as Category['slug'],
     label: c.name,
-    icon: 'GraduationCap',
+    icon: categoryIconMap[c.slug] ?? 'GraduationCap',
     count: categoryCounts.get(c.slug) ?? 0,
     description: c.description ?? undefined,
   }));
 
-  const departments: Department[] = staticDepartments.map((d) => ({
+  const departmentIcons: Record<string, string> = {
+    ssc: 'FileText',
+    railway: 'TrainFront',
+    banking: 'Landmark',
+    'banking-financial-services': 'Landmark',
+    upsc: 'Briefcase',
+    engineering: 'Cog',
+    defence: 'Shield',
+    teaching: 'GraduationCap',
+    police: 'ShieldCheck',
+    psu: 'Factory',
+    'psu-mining': 'Factory',
+    'state-government': 'Building2',
+  };
+
+  const departments: Department[] = browseOptions.departments.map((d) => ({
     ...d,
-    count: 0,
+    icon: departmentIcons[d.slug] ?? 'Building2',
+  }));
+
+  const organizations: Department[] = browseOptions.organizations.map((o) => ({
+    ...o,
+    icon: 'Building2',
   }));
 
   const upcomingExams: ExamListing[] = [];
@@ -65,6 +87,7 @@ async function getHomepageData() {
     admitCardsList,
     categoryList,
     departments,
+    organizations,
     upcomingExams,
     homepageStats,
   };
@@ -77,7 +100,7 @@ export default async function HomePage() {
     <SiteShell>
       <HeroSection latestJobs={data.latestJobs} stats={data.homepageStats} />
       <CategoriesSection categories={data.categoryList} />
-      <DepartmentsSection departments={data.departments} />
+      <DepartmentsSection departments={data.departments} organizations={data.organizations} />
       <LatestJobsSection jobs={data.latestJobs} />
       <ClosingSoonSection jobs={data.closingSoonJobs} />
       <ResultsSection results={data.latestResults} />
