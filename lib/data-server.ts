@@ -317,7 +317,7 @@ export async function serverGetHomepageBrowseOptions(limit = 9): Promise<{
   const departmentCounts = new Map<string, HomepageBrowseOption>();
   const organizationCounts = new Map<string, HomepageBrowseOption>();
 
-  for (const row of data as Array<{
+  for (const row of data as unknown as Array<{
     department: string | null;
     organization: { name: string; slug: string } | null;
   }>) {
