@@ -44,7 +44,7 @@ export function getIndiaDate(): string {
 }
 
 function isValidDateOnly(value: string | null | undefined): value is string {
-  return Boolean(value && /^\\d{4}-\\d{2}-\\d{2}$/.test(value));
+  return Boolean(value && /^\d{4}-\d{2}-\d{2}$/.test(value));
 }
 
 function calendarDayNumber(value: string): number {
