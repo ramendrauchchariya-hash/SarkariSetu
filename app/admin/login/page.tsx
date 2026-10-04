@@ -140,11 +140,6 @@ export default function AdminLoginPage() {
               </Button>
             </form>
 
-            <div className="mt-6 rounded-md border border-info/30 bg-info/5 p-3 text-xs text-muted-foreground">
-              <p className="font-medium text-foreground">Demo Credentials:</p>
-              <p className="mt-1">Email: admin@sarkarisetu.in</p>
-              <p>Password: SarkariSetu@2026</p>
-            </div>
           </CardContent>
         </Card>
 
