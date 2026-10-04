@@ -27,6 +27,8 @@ interface PageProps {
     status?: string;
     jobType?: string;
     qualification?: string;
+    state?: string;
+    salary?: string;
   };
 }
 
@@ -38,6 +40,8 @@ export default async function JobsPage({ searchParams }: PageProps) {
   const statuses = searchParams.status ? searchParams.status.split(',').filter(Boolean) : [];
   const jobTypes = searchParams.jobType ? searchParams.jobType.split(',').filter(Boolean) : [];
   const qualifications = searchParams.qualification ? searchParams.qualification.split(',').filter(Boolean) : [];
+  const states = searchParams.state ? searchParams.state.split(',').filter(Boolean) : [];
+  const salaryRanges = searchParams.salary ? searchParams.salary.split(',').filter(Boolean) : [];
 
   const { jobs, total, totalPages } = await serverGetJobsListing({
     page,
@@ -47,6 +51,8 @@ export default async function JobsPage({ searchParams }: PageProps) {
     statuses,
     jobTypes,
     qualifications,
+    states,
+    salaryRanges,
     sort,
   });
 
