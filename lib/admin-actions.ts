@@ -312,6 +312,25 @@ export async function publishJob(id: string): Promise<{ success: boolean; error?
     return { success: false, error: 'Description is required to publish.' };
   }
 
+  const { data: posts, error: postsError } = await supabaseAdmin
+    .from('posts')
+    .select('id')
+    .eq('recruitment_id', id);
+
+  if (postsError || !posts?.length) {
+    return { success: false, error: 'At least one job post is required before publishing.' };
+  }
+
+  const postIds = posts.map((post) => post.id);
+  const { count: vacancyCount, error: vacanciesError } = await supabaseAdmin
+    .from('vacancies')
+    .select('id', { count: 'exact', head: true })
+    .in('post_id', postIds);
+
+  if (vacanciesError || !vacancyCount) {
+    return { success: false, error: 'At least one vacancy record is required before publishing.' };
+  }
+
   const { data: updated, error } = await supabaseAdmin
     .from('recruitments')
     .update({ is_published: true, last_updated: new Date().toISOString() })
