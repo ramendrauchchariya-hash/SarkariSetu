@@ -48,6 +48,20 @@ export default function AdminLoginPage() {
         return;
       }
 
+      const sessionResponse = await fetch('/api/admin/session', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ access_token: data.session?.access_token }),
+        credentials: 'same-origin',
+      });
+
+      if (!sessionResponse.ok) {
+        await supabase.auth.signOut();
+        setError('Unable to create a secure admin session. Please try again.');
+        setLoading(false);
+        return;
+      }
+
       router.push('/admin');
       router.refresh();
     } catch {
