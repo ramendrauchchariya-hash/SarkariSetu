@@ -71,8 +71,11 @@ function listingMeta(r: RecruitmentWithOrg): { posts: number; salary: string } {
 
   const min = Math.min(...salaryValues);
   const max = Math.max(...salaryValues);
+
+  // The listing cards display this value as "Vacancies", so it must be
+  // the sum of vacancy_count across every post, not the number of post rows.
   return {
-    posts: posts.length,
+    posts: vacancyTotal,
     salary: min === max
       ? `₹${min.toLocaleString('en-IN')}`
       : `₹${min.toLocaleString('en-IN')} – ₹${max.toLocaleString('en-IN')}`,
