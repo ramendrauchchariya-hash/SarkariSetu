@@ -179,7 +179,7 @@ const LISTING_SELECT = `
   categories:recruitment_categories(
     category:categories(id, name, slug)
   ),
-  posts:posts(id, salary_min, salary_max)
+  posts:posts(id, salary_min, salary_max, vacancies:vacancies(vacancy_count))
 `;
 
 export async function serverGetClosingSoon(limit = 6): Promise<RecruitmentWithOrg[]> {
