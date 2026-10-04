@@ -1,41 +1,107 @@
 /**
- * Server-side jobs listing with database-side filtering, sorting and pagination.
+ * Server-side jobs listing.
+ *
+ * Public job data is read from Supabase. Filtering, sorting and pagination
+ * happen after the relevant recruitment/post/vacancy data has been loaded so
+ * every filter (including computed status, state and salary) produces correct
+ * totals and page boundaries.
  */
-
 import { supabaseAdmin } from './supabase-server';
 import { computeRecruitmentStatus } from './recruitment-status';
-import type { RecruitmentWithOrg, RecruitmentStatus } from './database-types';
+import type { RecruitmentWithOrg } from './database-types';
 import type { JobPosting, JobStatus } from './types';
 import type { SortOption } from './job-filters';
-import { recruitmentToJobPosting } from './data-mappers';
+import { recruitmentWithVacanciesToJobPosting } from './data-mappers';
+import { salaryRanges } from './job-filters';
 
 const RECRUITMENT_SELECT = `
   *,
   organization:organizations(id, name, slug, short_name, official_website_url),
-  categories:recruitment_categories(category:categories(id, name, slug))
+  categories:recruitment_categories(category:categories(id, name, slug)),
+  posts:posts(
+    *,
+    vacancies:vacancies(
+      *,
+      state:states(id, name, slug)
+    )
+  )
 `;
 
-function mapCategories(r: Record<string, unknown>): { id: string; name: string; slug: string }[] {
-  const cats = (r.categories ?? []) as Array<{ category: { id: string; name: string; slug: string } }>;
-  return cats.map((rc) => rc.category).filter(Boolean);
-}
+type DbPost = {
+  id: string;
+  title: string;
+  qualification: string | null;
+  discipline: string | null;
+  salary_min: number | null;
+  salary_max: number | null;
+  vacancies?: Array<{
+    id: string;
+    vacancy_count: number;
+    state_id: string | null;
+    state?: { id: string; name: string; slug: string } | null;
+  }>;
+};
 
-function toRecruitmentWithOrg(r: Record<string, unknown>): RecruitmentWithOrg {
+type DbRecruitment = Record<string, unknown> & {
+  posts?: DbPost[];
+};
+
+function toRecruitmentWithOrg(r: DbRecruitment): RecruitmentWithOrg {
+  const cats = (r.categories ?? []) as Array<{
+    category: { id: string; name: string; slug: string } | null;
+  }>;
+
   return {
     ...(r as unknown as RecruitmentWithOrg),
     organization: (r.organization ?? null) as RecruitmentWithOrg['organization'],
-    categories: mapCategories(r),
+    categories: cats.map((x) => x.category).filter(Boolean) as RecruitmentWithOrg['categories'],
   };
 }
 
-const SORT_MAP: Record<SortOption, { column: string; ascending: boolean }> = {
-  latest: { column: 'posted_date', ascending: false },
-  'deadline-soonest': { column: 'application_end', ascending: true },
-  'deadline-latest': { column: 'application_end', ascending: false },
-  'most-vacancies': { column: 'posted_date', ascending: false },
-  'org-az': { column: 'title', ascending: true },
-  'title-az': { column: 'title', ascending: true },
-};
+function escapeSearch(value: string): string {
+  return value.trim().toLowerCase();
+}
+
+function getAggregate(r: DbRecruitment) {
+  const posts = r.posts ?? [];
+  const vacancies = posts.flatMap((p) => p.vacancies ?? []);
+  const totalVacancies = vacancies.reduce((sum, v) => sum + (v.vacancy_count || 0), 0);
+
+  const salaries = posts
+    .flatMap((p) => [p.salary_min, p.salary_max])
+    .filter((v): v is number => typeof v === 'number' && Number.isFinite(v));
+
+  const salaryMin = posts
+    .map((p) => p.salary_min)
+    .filter((v): v is number => typeof v === 'number')
+    .reduce((min, v) => Math.min(min, v), salaries.length ? Math.min(...salaries) : 0);
+
+  const salaryMax = posts
+    .map((p) => p.salary_max)
+    .filter((v): v is number => typeof v === 'number')
+    .reduce((max, v) => Math.max(max, v), salaries.length ? Math.max(...salaries) : 0);
+
+  const stateSlugs = new Set<string>();
+  const stateNames = new Set<string>();
+  vacancies.forEach((v) => {
+    if (v.state?.slug) stateSlugs.add(v.state.slug);
+    if (v.state?.name) stateNames.add(v.state.name);
+  });
+
+  if (r.location_type === 'all-india' || stateSlugs.size === 0) {
+    stateSlugs.add('all-india');
+    stateNames.add('All India');
+  }
+
+  return {
+    posts,
+    totalVacancies,
+    salaryMin,
+    salaryMax,
+    stateSlugs,
+    stateNames,
+  };
+}
 
 export interface JobsQueryOptions {
   page: number;
@@ -45,65 +111,137 @@ export interface JobsQueryOptions {
   statuses?: string[];
   jobTypes?: string[];
   qualifications?: string[];
+  states?: string[];
+  salaryRanges?: string[];
   sort: SortOption;
 }
 
 export async function serverGetJobsListing(
   options: JobsQueryOptions
 ): Promise<{ jobs: JobPosting[]; total: number; totalPages: number }> {
-  const { page, pageSize, search, departments, statuses, jobTypes, qualifications, sort } = options;
-  const from = (page - 1) * pageSize;
-  const to = from + pageSize - 1;
+  const {
+    page,
+    pageSize,
+    search,
+    departments = [],
+    statuses = [],
+    jobTypes = [],
+    qualifications = [],
+    states = [],
+    salaryRanges: selectedSalaryRanges = [],
+    sort,
+  } = options;
 
-  let query = supabaseAdmin
+  const { data, error } = await supabaseAdmin
     .from('recruitments')
-    .select(RECRUITMENT_SELECT, { count: 'exact' })
+    .select(RECRUITMENT_SELECT)
     .eq('is_published', true)
     .eq('is_archived', false);
 
-  if (search) {
-    query = query.or(`title.ilike.%${search}%,description.ilike.%${search}%`);
+  if (error || !data) {
+    console.error('Failed to load published jobs:', error);
+    return { jobs: [], total: 0, totalPages: 0 };
   }
 
-  if (departments && departments.length > 0) {
-    query = query.in('department', departments);
-  }
+  const q = escapeSearch(search ?? '');
+  const salaryConfigs = salaryRanges.filter((r) => selectedSalaryRanges.includes(r.value));
 
-  if (jobTypes && jobTypes.length > 0) {
-    query = query.in('job_type', jobTypes);
-  }
+  let rows = (data as unknown as DbRecruitment[]).map((raw) => {
+    const recruitment = toRecruitmentWithOrg(raw);
+    const aggregate = getAggregate(raw);
+    const job = recruitmentWithVacanciesToJobPosting(
+      recruitment,
+      aggregate.totalVacancies,
+      aggregate.salaryMin,
+      aggregate.salaryMax
+    );
 
-  if (qualifications && qualifications.length > 0) {
-    const orParts = qualifications.map((q) => `categories.category.slug.eq.${q}`);
-    query = query.or(orParts.join(','));
-  }
+    const firstState = aggregate.stateSlugs.values().next().value as string | undefined;
+    const firstStateName = aggregate.stateNames.values().next().value as string | undefined;
 
-  const sortConfig = SORT_MAP[sort] ?? SORT_MAP.latest;
-  query = query.order(sortConfig.column, { ascending: sortConfig.ascending, nullsFirst: false });
+    return {
+      recruitment,
+      job: {
+        ...job,
+        state: firstState ?? job.state,
+        location: firstStateName ?? job.location,
+      },
+      aggregate,
+    };
+  });
 
-  if (sort === 'most-vacancies') {
-    query = query.order('posted_date', { ascending: false, nullsFirst: false });
-  }
+  rows = rows.filter(({ recruitment, job, aggregate }) => {
+    const categoryText = recruitment.categories.map((c) => `${c.name} ${c.slug}`).join(' ');
+    const postText = aggregate.posts
+      .map((p) => `${p.title} ${p.qualification ?? ''} ${p.discipline ?? ''}`)
+      .join(' ');
 
-  query = query.range(from, to);
+    if (q) {
+      const haystack = [
+        recruitment.title,
+        recruitment.description ?? '',
+        recruitment.department ?? '',
+        recruitment.organization?.name ?? '',
+        categoryText,
+        postText,
+      ].join(' ').toLowerCase();
 
-  const { data, count } = await query;
+      if (!haystack.includes(q)) return false;
+    }
 
-  if (!data) return { jobs: [], total: 0, totalPages: 0 };
+    if (departments.length && !departments.includes(recruitment.department ?? '')) return false;
+    if (jobTypes.length && !jobTypes.includes(recruitment.job_type ?? '')) return false;
 
-  let recruitments = data.map(toRecruitmentWithOrg);
+    if (qualifications.length) {
+      const qualificationValues = new Set<string>();
+      recruitment.categories.forEach((c) => qualificationValues.add(c.slug));
+      aggregate.posts.forEach((p) => {
+        if (p.qualification) qualificationValues.add(p.qualification);
+      });
+      if (!qualifications.some((value) => qualificationValues.has(value))) return false;
+    }
 
-  if (statuses && statuses.length > 0) {
-    recruitments = recruitments.filter((r) => {
-      const status = computeRecruitmentStatus(r) as JobStatus;
-      return statuses.includes(status);
-    });
-  }
+    if (states.length && !states.some((state) => aggregate.stateSlugs.has(state))) return false;
 
-  const total = count ?? recruitments.length;
+    if (salaryConfigs.length) {
+      const matches = salaryConfigs.some((range) => {
+        const max = Number.isFinite(range.max) ? range.max : Number.MAX_SAFE_INTEGER;
+        return aggregate.salaryMax >= range.min && aggregate.salaryMin <= max;
+      });
+      if (!matches) return false;
+    }
+
+    if (statuses.length) {
+      const status = computeRecruitmentStatus(recruitment) as JobStatus;
+      if (!statuses.includes(status)) return false;
+    }
+
+    return true;
+  });
+
+  rows.sort((a, b) => {
+    switch (sort) {
+      case 'deadline-soonest':
+        return (a.job.applicationEnd || '9999-12-31').localeCompare(b.job.applicationEnd || '9999-12-31');
+      case 'deadline-latest':
+        return (b.job.applicationEnd || '').localeCompare(a.job.applicationEnd || '');
+      case 'most-vacancies':
+        return b.aggregate.totalVacancies - a.aggregate.totalVacancies;
+      case 'org-az':
+        return a.job.organization.localeCompare(b.job.organization);
+      case 'title-az':
+        return a.job.title.localeCompare(b.job.title);
+      case 'latest':
+      default:
+        return String(b.job.postedDate).localeCompare(String(a.job.postedDate));
+    }
+  });
+
+  const total = rows.length;
   const totalPages = Math.ceil(total / pageSize);
-
-  const jobs = recruitments.map(recruitmentToJobPosting);
+  const safePage = Math.min(Math.max(1, page), Math.max(totalPages, 1));
+  const start = (safePage - 1) * pageSize;
+  const jobs = rows.slice(start, start + pageSize).map((row) => row.job);
 
   return { jobs, total, totalPages };
 }
