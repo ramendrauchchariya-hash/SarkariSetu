@@ -48,6 +48,20 @@ export default function AdminLoginPage() {
         return;
       }
 
+      const sessionResponse = await fetch('/api/admin/session', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ access_token: data.session?.access_token }),
+        credentials: 'same-origin',
+      });
+
+      if (!sessionResponse.ok) {
+        await supabase.auth.signOut();
+        setError('Unable to create a secure admin session. Please try again.');
+        setLoading(false);
+        return;
+      }
+
       router.push('/admin');
       router.refresh();
     } catch {
@@ -126,11 +140,6 @@ export default function AdminLoginPage() {
               </Button>
             </form>
 
-            <div className="mt-6 rounded-md border border-info/30 bg-info/5 p-3 text-xs text-muted-foreground">
-              <p className="font-medium text-foreground">Demo Credentials:</p>
-              <p className="mt-1">Email: admin@sarkarisetu.in</p>
-              <p>Password: SarkariSetu@2026</p>
-            </div>
           </CardContent>
         </Card>
 

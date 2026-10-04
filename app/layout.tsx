@@ -1,6 +1,7 @@
 import './globals.css';
 import type { Metadata } from 'next';
 import { Inter, Poppins } from 'next/font/google';
+import { AdminSessionSync } from '@/components/admin/admin-session-sync';
 
 const inter = Inter({
   subsets: ['latin'],
@@ -77,6 +78,7 @@ export default function RootLayout({
   return (
     <html lang="en" suppressHydrationWarning>
       <body className={`${inter.variable} ${poppins.variable} font-sans`}>
+        <AdminSessionSync />
         {children}
       </body>
     </html>
