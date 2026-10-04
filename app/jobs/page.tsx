@@ -1,11 +1,13 @@
 import { Suspense } from 'react';
 import type { Metadata } from 'next';
 import { JobsPageClient } from '@/components/site/jobs-page-client';
-import { JobSkeletonList } from '@/components/site/job-skeleton';
 import { SiteShell } from '@/components/site/site-shell';
 import { serverGetJobsListing } from '@/lib/jobs-server';
 import type { SortOption } from '@/lib/job-filters';
 import { JOBS_PER_PAGE } from '@/lib/job-filters';
+
+export const dynamic = 'force-dynamic';
+export const revalidate = 0;
 
 export const metadata: Metadata = {
   title: 'Government Jobs — SarkariSetu',
