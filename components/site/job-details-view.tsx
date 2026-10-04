@@ -80,6 +80,7 @@ export function JobDetailsView({ job, relatedJobs: relatedJobsProp = [] }: JobDe
   const isClosed = job.status === 'closed';
   const isClosingSoon = job.status === 'closing-soon';
   const canApply = job.status === 'open' || job.status === 'closing-soon';
+  const applicationLink = job.officialLinks.find((link) => link.type === 'application')?.url;
 
   // Build timeline steps
   const timelineSteps: TimelineStep[] = [
