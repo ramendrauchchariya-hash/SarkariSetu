@@ -286,6 +286,69 @@ export async function serverGetRecruitmentCountByCategory(): Promise<Map<string,
   return map;
 }
 
+export interface HomepageBrowseOption {
+  slug: string;
+  label: string;
+  count: number;
+}
+
+export async function serverGetHomepageBrowseOptions(limit = 9): Promise<{
+  departments: HomepageBrowseOption[];
+  organizations: HomepageBrowseOption[];
+}> {
+  const { data, error } = await supabaseAdmin
+    .from('recruitments')
+    .select('department, organization:organizations(name, slug)')
+    .eq('is_published', true)
+    .eq('is_archived', false);
+
+  if (error || !data) {
+    if (error) console.error('Failed to load homepage browse options:', error);
+    return { departments: [], organizations: [] };
+  }
+
+  const slugify = (value: string) => value
+    .trim()
+    .toLowerCase()
+    .replace(/&/g, ' and ')
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/^-+|-+$/g, '');
+
+  const departmentCounts = new Map<string, HomepageBrowseOption>();
+  const organizationCounts = new Map<string, HomepageBrowseOption>();
+
+  for (const row of data as Array<{
+    department: string | null;
+    organization: { name: string; slug: string } | null;
+  }>) {
+    if (row.department?.trim()) {
+      const label = row.department.trim();
+      const slug = slugify(label);
+      const current = departmentCounts.get(slug);
+      departmentCounts.set(slug, { slug, label, count: (current?.count ?? 0) + 1 });
+    }
+
+    if (row.organization?.slug && row.organization.name?.trim()) {
+      const slug = row.organization.slug;
+      const current = organizationCounts.get(slug);
+      organizationCounts.set(slug, {
+        slug,
+        label: row.organization.name.trim(),
+        count: (current?.count ?? 0) + 1,
+      });
+    }
+  }
+
+  const sortOptions = (items: HomepageBrowseOption[]) => items
+    .sort((a, b) => b.count - a.count || a.label.localeCompare(b.label))
+    .slice(0, limit);
+
+  return {
+    departments: sortOptions([...departmentCounts.values()]),
+    organizations: sortOptions([...organizationCounts.values()]),
+  };
+}
+
 export async function serverGetHomepageStats(): Promise<{
   activeJobs: number;
   results: number;
