@@ -53,12 +53,24 @@ export function JobsPageClient({ jobs, total, totalPages, currentPage }: JobsPag
   const [sort, setSort] = useState<SortOption>(initial.sort);
   const [mobileFiltersOpen, setMobileFiltersOpen] = useState(false);
 
+  // Keep local controls synchronized with browser back/forward navigation.
+  useEffect(() => {
+    const next = searchParamsToFilters(new URLSearchParams(searchParams.toString()));
+    setFilters(next.filters);
+    setSearch(next.search);
+    setSort(next.sort);
+  }, [searchParams]);
+
+  // Update the URL when the user changes filters/search/sort.
   useEffect(() => {
     const params = filtersToSearchParams(filters, search, sort, currentPage);
     const queryString = params.toString();
     const newUrl = queryString ? `${pathname}?${queryString}` : pathname;
-    router.replace(newUrl, { scroll: false });
-  }, [filters, search, sort, currentPage, pathname, router]);
+    const currentQuery = searchParams.toString();
+    if (queryString !== currentQuery) {
+      router.replace(newUrl, { scroll: false });
+    }
+  }, [filters, search, sort, currentPage, pathname, router, searchParams]);
 
   const activeFilterCount = useMemo(
     () => Object.values(filters).reduce((sum, arr) => sum + arr.length, 0),
