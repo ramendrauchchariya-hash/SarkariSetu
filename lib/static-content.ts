@@ -1,9 +1,9 @@
 /**
- * Static site content that is not stored in the database.
+ * Static site configuration that is not recruitment data.
  *
- * These are site-config constants (tools, guides, department icons)
- * — not mock data. They represent fixed UI configuration rather than
- * database-backed listings.
+ * Recruitment, result, admit-card and answer-key listings must come from
+ * verified database records. Empty arrays are intentional until real content
+ * is added through the admin dashboard.
  */
 
 import type { ExamTool, GuideArticle, Department, Category } from './types';
@@ -47,40 +47,7 @@ export const examTools: ExamTool[] = [
   },
 ];
 
-export const guides: GuideArticle[] = [
-  {
-    id: 'how-to-fill-ssc-cgl-form',
-    title: 'How to Fill SSC CGL Application Form: Step-by-Step Guide',
-    excerpt: 'A complete walkthrough of the SSC CGL application process, from registration to fee payment.',
-    category: 'Application Guide',
-    readTime: '8 min read',
-    publishedDate: '2026-01-15',
-  },
-  {
-    id: 'rrb-group-d-preparation-tips',
-    title: 'RRB Group D Preparation Tips and Strategy',
-    excerpt: 'Effective study plan and topic-wise tips to crack the RRB Group D exam.',
-    category: 'Exam Preparation',
-    readTime: '6 min read',
-    publishedDate: '2026-01-20',
-  },
-  {
-    id: 'upsc-cse-eligibility-guide',
-    title: 'UPSC Civil Services Eligibility Guide',
-    excerpt: 'Understand age limits, educational qualifications, and attempt limits for UPSC CSE.',
-    category: 'Eligibility',
-    readTime: '5 min read',
-    publishedDate: '2026-02-01',
-  },
-  {
-    id: 'document-checklist-govt-jobs',
-    title: 'Document Checklist for Government Job Applications',
-    excerpt: 'All the documents you need to keep ready before applying for any government job.',
-    category: 'General',
-    readTime: '4 min read',
-    publishedDate: '2026-02-10',
-  },
-];
+export const guides: GuideArticle[] = [];
 
 export const departments: Department[] = [
   { slug: 'ssc', label: 'SSC', icon: 'FileText', count: 0 },
