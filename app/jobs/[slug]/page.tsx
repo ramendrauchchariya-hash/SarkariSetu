@@ -1,8 +1,11 @@
 import type { Metadata } from 'next';
 import { notFound } from 'next/navigation';
 import { JobDetailsView } from '@/components/site/job-details-view';
-import { serverGetRecruitmentBySlug, serverGetRelatedRecruitments, serverGetAllPublishedSlugs } from '@/lib/data-server';
+import { serverGetRecruitmentBySlug, serverGetRelatedRecruitments } from '@/lib/data-server';
 import { recruitmentDetailToJobDetails, recruitmentToJobPosting } from '@/lib/data-mappers';
+
+export const dynamic = 'force-dynamic';
+export const revalidate = 0;
 
 interface PageProps {
   params: { slug: string };
@@ -29,15 +32,6 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
       description: `Check eligibility, vacancies, important dates, salary, application fee, selection process and official links for ${recruitment.title}.`,
     },
   };
-}
-
-export async function generateStaticParams() {
-  try {
-    const slugs = await serverGetAllPublishedSlugs();
-    return slugs.map((slug) => ({ slug }));
-  } catch {
-    return [];
-  }
 }
 
 export default async function JobDetailsPage({ params }: PageProps) {
