@@ -40,5 +40,3 @@ export default function RegisterPage() {
   <Button type="submit" disabled={loading} className="w-full">{loading&&<Loader2 className="mr-2 h-4 w-4 animate-spin"/>}Create Account</Button>
 </form><p className="mt-5 text-center text-sm text-muted-foreground">Already have an account? <Link className="font-semibold text-primary hover:underline" href={'/auth/login?redirectTo='+encodeURIComponent(redirectTo)}>Sign In</Link></p></CardContent></Card></div></SiteShell>;
 }
-
-export const metadata = { title: 'Create Account' };
