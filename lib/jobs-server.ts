@@ -69,6 +69,31 @@ function slugifyDepartment(value: string): string {
     .replace(/^-+|-+$/g, '');
 }
 
+function normalizeQualification(value: string): string {
+  return value
+    .trim()
+    .toLowerCase()
+    .replace(/\./g, '')
+    .replace(/\s+/g, '-')
+    .replace(/[^a-z0-9-]+/g, '-')
+    .replace(/-+/g, '-')
+    .replace(/^-+|-+$/g, '');
+}
+
+function qualificationMatches(value: string | null, selected: string[]): boolean {
+  if (!value) return false;
+  const normalized = normalizeQualification(value);
+  return selected.some((candidate) => {
+    const wanted = normalizeQualification(candidate);
+    return normalized === wanted ||
+      (wanted === 'b-tech' && normalized === 'btech') ||
+      (wanted === 'b-e' && normalized === 'be') ||
+      (wanted === 'post-graduate' && normalized === 'postgraduate') ||
+      (wanted === '10th-pass' && normalized === '10th') ||
+      (wanted === '12th-pass' && normalized === '12th');
+  });
+}
+
 function departmentMatches(
   department: string | null,
   organization: { slug: string; name: string } | null,
@@ -238,12 +263,13 @@ export async function serverGetJobsListing(
     if (jobTypes.length && !jobTypes.includes(recruitment.job_type ?? '')) return false;
 
     if (qualifications.length) {
-      const qualificationValues = new Set<string>();
-      recruitment.categories.forEach((c) => qualificationValues.add(c.slug));
-      aggregate.posts.forEach((p) => {
-        if (p.qualification) qualificationValues.add(p.qualification);
-      });
-      if (!qualifications.some((value) => qualificationValues.has(value))) return false;
+      const categoryMatches = recruitment.categories.some((category) =>
+        qualificationMatches(category.slug, qualifications)
+      );
+      const postMatches = aggregate.posts.some((post) =>
+        qualificationMatches(post.qualification, qualifications)
+      );
+      if (!categoryMatches && !postMatches) return false;
     }
 
     if (states.length && !states.some((state) => aggregate.stateSlugs.has(state))) return false;
