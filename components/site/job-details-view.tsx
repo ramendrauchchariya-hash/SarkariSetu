@@ -44,6 +44,7 @@ import { InfoCard } from '@/components/site/info-card';
 import { RecruitmentTimeline, type TimelineStep } from '@/components/site/recruitment-timeline';
 import { SaveJobButton } from '@/components/site/save-job-button';
 import { ApplicationTracker } from '@/components/site/application-tracker';
+import { ExamTracker } from '@/components/site/exam-tracker';
 import { ShareButton } from '@/components/site/share-button';
 import { JobListingCard } from '@/components/site/job-listing-card';
 import { EmptyState } from '@/components/site/empty-state';
@@ -236,6 +237,7 @@ export function JobDetailsView({ job, relatedJobs: relatedJobsProp = [] }: JobDe
               <SaveJobButton jobId={job.id} size="lg" />
               <ShareButton title={job.title} />
               <ApplicationTracker jobId={job.id} jobTitle={job.title} />
+              {job.examDate && <ExamTracker recruitmentId={job.id} examTitle={job.title} />}
             </div>
           </div>
         </div>
