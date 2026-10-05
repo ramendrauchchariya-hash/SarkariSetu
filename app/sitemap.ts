@@ -8,7 +8,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const base = 'https://sarkarisetu.in';
   const now = new Date();
 
-  const routes: MetadataRoute.Sitemap = PUBLIC_NAV.map((route) => ({
+  const staticRoutes = [\n    { label: 'About', href: '/about' },\n    { label: 'Contact', href: '/contact' },\n    { label: 'Privacy', href: '/privacy' },\n    { label: 'Terms', href: '/terms' },\n    { label: 'Disclaimer', href: '/disclaimer' },\n  ];\n\n  const routes: MetadataRoute.Sitemap = [...PUBLIC_NAV, ...staticRoutes].map((route) => ({
     url: base + route.href,
     lastModified: now,
     changeFrequency: route.href === '/' ? 'hourly' : 'daily',
