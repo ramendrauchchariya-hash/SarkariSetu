@@ -1,14 +1,3 @@
-import { ComingSoon } from '@/components/site/coming-soon';
-
-export const metadata = { title: 'Admin — Admit Cards' };
-
-export default function AdminAdmitCardsPage() {
-  return (
-    <ComingSoon
-      title="Manage Admit Cards"
-      description="Upload and manage admit card links. Admin functionality coming soon."
-      backHref="/admin"
-      backLabel="Back to Admin"
-    />
-  );
-}
+import Link from 'next/link';import {requireAdmin} from '@/lib/admin-auth';import {supabaseAdmin} from '@/lib/supabase-server';import {AdminShell} from '@/components/admin/admin-shell';import {Button} from '@/components/ui/button';import {Badge} from '@/components/ui/badge';import {Card,CardContent} from '@/components/ui/card';import {Plus,ExternalLink} from 'lucide-react';import {AdmitCardActions} from '@/components/admin/admit-card-actions';import {formatDate} from '@/lib/format';
+export const dynamic='force-dynamic';export const metadata={title:'Admin — Admit Cards'};
+export default async function Page(){await requireAdmin();const{data}=await supabaseAdmin.from('admit_cards').select('id,title,slug,exam_date,release_date,status,is_published,archived_at,official_url,organization:organizations(name)').order('updated_at',{ascending:false});const rows=(data??[]).map(r=>{const o=Array.isArray(r.organization)?r.organization[0]:r.organization;return{...r,organizationName:o?.name??'—'}});return <AdminShell title="Manage Admit Cards" breadcrumbs={[{label:'Admin',href:'/admin'},{label:'Admit Cards'}]} actions={<Button asChild size="sm"><Link href="/admin/admit-cards/new"><Plus className="mr-2 h-4 w-4"/>Add Admit Card</Link></Button>}><div className="space-y-4"><p className="text-sm text-muted-foreground">{rows.length} admit card records</p>{rows.length===0?<Card><CardContent className="p-10 text-center"><p className="font-semibold">No admit card records yet.</p><p className="mt-1 text-sm text-muted-foreground">Create one after verifying the official download source.</p></CardContent></Card>:<div className="overflow-x-auto rounded-lg border bg-card"><table className="w-full text-sm"><thead><tr className="border-b bg-muted/30 text-left text-xs text-muted-foreground"><th className="px-4 py-3">Admit Card</th><th className="px-4 py-3">Organization</th><th className="px-4 py-3">Release</th><th className="px-4 py-3">Status</th><th className="px-4 py-3 text-right">Actions</th></tr></thead><tbody className="divide-y">{rows.map(r=><tr key={r.id}><td className="px-4 py-3"><Link href={'/admin/admit-cards/'+r.id+'/edit'} className="font-medium hover:text-primary">{r.title}</Link><p className="text-xs text-muted-foreground">{r.status}</p></td><td className="px-4 py-3 text-muted-foreground">{r.organizationName}</td><td className="px-4 py-3 text-muted-foreground">{r.release_date?formatDate(r.release_date):'—'}</td><td className="px-4 py-3">{r.archived_at?<Badge variant="outline">Archived</Badge>:r.is_published?<Badge variant="success">Published</Badge>:<Badge variant="secondary">Draft</Badge>}</td><td className="px-4 py-3"><div className="flex justify-end gap-1"><Link href={'/admit-cards/'+r.slug} target="_blank" className="rounded p-2 text-muted-foreground hover:bg-muted"><ExternalLink className="h-4 w-4"/></Link><AdmitCardActions id={r.id} title={r.title} published={r.is_published} archived={!!r.archived_at}/></div></td></tr>)}</tbody></table></div>}</div></AdminShell>}
