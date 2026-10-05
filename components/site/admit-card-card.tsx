@@ -33,8 +33,16 @@ export function AdmitCardCard({ admitCard, className }: AdmitCardCardProps) {
         </p>
         <p className="mt-0.5 flex items-center gap-1.5 text-xs text-muted-foreground">
           <CalendarDays className="h-3 w-3 shrink-0" />
-          Exam: {formatDate(admitCard.examDate)}
+          Exam: {admitCard.examDate ? formatDate(admitCard.examDate) : 'Not specified'}
         </p>
+        <p className="mt-0.5 text-xs text-muted-foreground">
+          Released: {admitCard.releaseDate ? formatDate(admitCard.releaseDate) : 'Not specified'}
+        </p>
+        {admitCard.description && (
+          <p className="mt-1 line-clamp-2 text-xs text-muted-foreground">
+            {admitCard.description}
+          </p>
+        )}
       </Link>
       <div className="flex shrink-0 flex-col items-end gap-2">
         <StatusBadge status={admitCard.status} />
