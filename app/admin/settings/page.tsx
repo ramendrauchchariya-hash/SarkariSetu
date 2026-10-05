@@ -1,14 +1,1 @@
-import { ComingSoon } from '@/components/site/coming-soon';
-
-export const metadata = { title: 'Admin — Settings' };
-
-export default function AdminSettingsPage() {
-  return (
-    <ComingSoon
-      title="Settings"
-      description="Configure platform settings, preferences and integrations. Admin functionality coming soon."
-      backHref="/admin"
-      backLabel="Back to Admin"
-    />
-  );
-}
+import Link from'next/link';import{requireAdmin}from'@/lib/admin-auth';import{supabaseAdmin}from'@/lib/supabase-server';import{AdminShell}from'@/components/admin/admin-shell';import{Button}from'@/components/ui/button';import{Plus}from'lucide-react';export const dynamic='force-dynamic';export const metadata={title:'Admin — Settings'};export default async function Page(){await requireAdmin();const{data}=await supabaseAdmin.from('site_settings').select('id,key,value,description,updated_at').order('key');return <AdminShell title="Settings" breadcrumbs={[{label:'Admin',href:'/admin'},{label:'Settings'}]} actions={<Button asChild size="sm"><Link href="/admin/settings/new"><Plus className="mr-2 h-4 w-4"/>Add Setting</Link></Button>}><div className="overflow-x-auto rounded-lg border bg-card"><table className="w-full text-sm"><thead><tr className="border-b bg-muted/30 text-left text-xs text-muted-foreground"><th className="px-4 py-3">Key</th><th className="px-4 py-3">Value</th><th className="px-4 py-3">Description</th><th className="px-4 py-3"></th></tr></thead><tbody className="divide-y">{(data??[]).map(s=><tr key={s.id}><td className="px-4 py-3 font-medium">{s.key}</td><td className="max-w-md px-4 py-3 text-muted-foreground"><div className="max-h-20 overflow-hidden whitespace-pre-wrap">{s.value??'—'}</div></td><td className="px-4 py-3 text-muted-foreground">{s.description??'—'}</td><td className="px-4 py-3 text-right"><Button asChild size="sm" variant="outline"><Link href={'/admin/settings/'+s.id+'/edit'}>Edit</Link></Button></td></tr>)}</tbody></table></div></AdminShell>}
