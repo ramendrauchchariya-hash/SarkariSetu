@@ -1,14 +1,3 @@
-import { ComingSoon } from '@/components/site/coming-soon';
-
-export const metadata = { title: 'Admin — Notifications' };
-
-export default function AdminNotificationsPage() {
-  return (
-    <ComingSoon
-      title="Manage Notifications"
-      description="Send broadcast notifications and alerts to users. Admin functionality coming soon."
-      backHref="/admin"
-      backLabel="Back to Admin"
-    />
-  );
-}
+import Link from 'next/link';import {requireAdmin} from '@/lib/admin-auth';import {supabaseAdmin} from '@/lib/supabase-server';import {AdminShell} from '@/components/admin/admin-shell';import {Button} from '@/components/ui/button';import {Card,CardContent} from '@/components/ui/card';import {Plus,Bell} from 'lucide-react';
+export const dynamic='force-dynamic';export const metadata={title:'Admin — Notifications'};
+export default async function Page(){await requireAdmin();const[{data:recent},{count:users},{count:subscribers}]=await Promise.all([supabaseAdmin.from('notifications').select('title,message,notification_type,created_at').order('created_at',{ascending:false}).limit(20),supabaseAdmin.from('profiles').select('id',{count:'exact',head:true}),supabaseAdmin.from('notification_subscriptions').select('id',{count:'exact',head:true})]);return <AdminShell title="Manage Notifications" breadcrumbs={[{label:'Admin',href:'/admin'},{label:'Notifications'}]} actions={<Button asChild size="sm"><Link href="/admin/notifications/new"><Plus className="mr-2 h-4 w-4"/>Send Notification</Link></Button>}><div className="grid gap-4 sm:grid-cols-2"><Card><CardContent className="p-5"><p className="text-sm text-muted-foreground">Registered users</p><p className="mt-1 text-2xl font-bold">{users??0}</p></CardContent></Card><Card><CardContent className="p-5"><p className="text-sm text-muted-foreground">Job-alert subscriptions</p><p className="mt-1 text-2xl font-bold">{subscribers??0}</p></CardContent></Card></div><Card className="mt-6"><CardContent className="p-0"><div className="border-b p-4"><h2 className="font-semibold">Recent notifications</h2></div>{(recent??[]).length===0?<div className="p-10 text-center"><Bell className="mx-auto h-10 w-10 text-muted-foreground"/><p className="mt-3 font-semibold">No notifications sent yet</p></div>:<div className="divide-y">{(recent??[]).map((n,i)=><div key={i} className="p-4"><p className="font-medium">{n.title}</p>{n.message&&<p className="mt-1 text-sm text-muted-foreground">{n.message}</p>}<p className="mt-1 text-xs text-muted-foreground">{n.notification_type??'announcement'} · {new Date(n.created_at).toLocaleString('en-IN')}</p></div>)}</div>}</CardContent></Card></AdminShell>}
