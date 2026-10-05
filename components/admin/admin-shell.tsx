@@ -35,13 +35,12 @@ interface NavItem {
 const NAV_ITEMS: NavItem[] = [
   { label: 'Dashboard', href: '/admin', icon: LayoutDashboard },
   { label: 'Jobs', href: '/admin/jobs', icon: FileText },
-  { label: 'Results', href: '/admin/results', icon: FileBarChart, disabled: true },
-  { label: 'Admit Cards', href: '/admin/admit-cards', icon: Clock, disabled: true },
-  { label: 'Answer Keys', href: '/admin/answer-keys', icon: FileBarChart, disabled: true },
-  { label: 'Organizations', href: '/admin/organizations', icon: Building2, disabled: true },
-  { label: 'Categories', href: '/admin/categories', icon: GraduationCap, disabled: true },
+  { label: 'Results', href: '/admin/results', icon: FileBarChart },
+  { label: 'Admit Cards', href: '/admin/admit-cards', icon: Clock },
+  { label: 'Organizations', href: '/admin/organizations', icon: Building2 },
+  { label: 'Categories', href: '/admin/categories', icon: GraduationCap },
   { label: 'Users', href: '/admin/users', icon: Users, disabled: true },
-  { label: 'Notifications', href: '/admin/notifications', icon: Bell, disabled: true },
+  { label: 'Notifications', href: '/admin/notifications', icon: Bell },
   { label: 'Settings', href: '/admin/settings', icon: Settings, disabled: true },
 ];
 
