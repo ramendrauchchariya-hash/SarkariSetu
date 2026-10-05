@@ -61,17 +61,6 @@ export function JobsPageClient({ jobs, total, totalPages, currentPage }: JobsPag
     setSort(next.sort);
   }, [searchParams]);
 
-  // Update the URL when the user changes filters/search/sort.
-  useEffect(() => {
-    const params = filtersToSearchParams(filters, search, sort, currentPage);
-    const queryString = params.toString();
-    const newUrl = queryString ? `${pathname}?${queryString}` : pathname;
-    const currentQuery = searchParams.toString();
-    if (queryString !== currentQuery) {
-      router.replace(newUrl, { scroll: false });
-    }
-  }, [filters, search, sort, currentPage, pathname, router, searchParams]);
-
   const activeFilterCount = useMemo(
     () => Object.values(filters).reduce((sum, arr) => sum + arr.length, 0),
     [filters]
