@@ -847,3 +847,96 @@ async function copyChildTable(table: string, sourceId: string, newId: string, fk
 
   await supabaseAdmin.from(table).insert(rows);
 }
+
+
+// ─── Results CMS ─────────────────────────────────────────────────────────────
+
+export interface ResultFormData {
+  title: string;
+  slug: string;
+  organization_id: string;
+  recruitment_id: string;
+  result_type: string;
+  result_date: string;
+  description: string;
+  official_result_url: string;
+  official_website_url: string;
+}
+
+export async function createResult(data: ResultFormData): Promise<{ success: boolean; error?: string; id?: string }> {
+  const admin = await requireAdmin();
+  const slug = slugify(data.slug);
+  const unique = await isResultSlugUnique(slug);
+  if (!unique) return { success: false, error: 'A result with this slug already exists.' };
+  const { data: created, error } = await supabaseAdmin.from('results').insert({
+    title: data.title.trim(), slug, organization_id: data.organization_id || null,
+    recruitment_id: data.recruitment_id || null, result_type: data.result_type || 'result',
+    result_date: data.result_date || null, description: data.description.trim() || null,
+    official_result_url: data.official_result_url || null, official_website_url: data.official_website_url || null,
+    is_published: false,
+  }).select().single();
+  if (error) return { success: false, error: error.message };
+  await logAudit({ userId: admin.id, action: 'create', entityType: 'result', entityId: created.id, newData: created as Record<string, unknown> });
+  revalidatePath('/admin/results'); revalidatePath('/results');
+  return { success: true, id: created.id };
+}
+
+export async function updateResult(id: string, data: ResultFormData): Promise<{ success: boolean; error?: string }> {
+  const admin = await requireAdmin();
+  const slug = slugify(data.slug);
+  if (!(await isResultSlugUnique(slug, id))) return { success: false, error: 'A result with this slug already exists.' };
+  const { data: oldData } = await supabaseAdmin.from('results').select('*').eq('id', id).maybeSingle();
+  if (!oldData) return { success: false, error: 'Result not found.' };
+  const { data: updated, error } = await supabaseAdmin.from('results').update({
+    title: data.title.trim(), slug, organization_id: data.organization_id || null,
+    recruitment_id: data.recruitment_id || null, result_type: data.result_type || 'result',
+    result_date: data.result_date || null, description: data.description.trim() || null,
+    official_result_url: data.official_result_url || null, official_website_url: data.official_website_url || null,
+    updated_at: new Date().toISOString(),
+  }).eq('id', id).select().single();
+  if (error) return { success: false, error: error.message };
+  await logAudit({ userId: admin.id, action: 'update', entityType: 'result', entityId: id, oldData: oldData as Record<string, unknown>, newData: updated as Record<string, unknown> });
+  revalidatePath('/admin/results'); revalidatePath('/results'); revalidatePath('/results/'+slug);
+  return { success: true };
+}
+
+export async function publishResult(id: string): Promise<{ success: boolean; error?: string }> {
+  const admin = await requireAdmin();
+  const { data: oldData } = await supabaseAdmin.from('results').select('*').eq('id', id).maybeSingle();
+  if (!oldData) return { success: false, error: 'Result not found.' };
+  if (!oldData.official_result_url) return { success: false, error: 'Official result URL is required before publishing.' };
+  const { data: updated, error } = await supabaseAdmin.from('results').update({ is_published: true, updated_at: new Date().toISOString() }).eq('id', id).select().single();
+  if (error) return { success: false, error: error.message };
+  await logAudit({ userId: admin.id, action: 'publish', entityType: 'result', entityId: id, oldData: oldData as Record<string, unknown>, newData: updated as Record<string, unknown> });
+  revalidatePath('/admin/results'); revalidatePath('/results');
+  return { success: true };
+}
+
+export async function unpublishResult(id: string): Promise<{ success: boolean; error?: string }> {
+  const admin = await requireAdmin();
+  const { data: oldData } = await supabaseAdmin.from('results').select('*').eq('id', id).maybeSingle();
+  if (!oldData) return { success: false, error: 'Result not found.' };
+  const { data: updated, error } = await supabaseAdmin.from('results').update({ is_published: false, updated_at: new Date().toISOString() }).eq('id', id).select().single();
+  if (error) return { success: false, error: error.message };
+  await logAudit({ userId: admin.id, action: 'unpublish', entityType: 'result', entityId: id, oldData: oldData as Record<string, unknown>, newData: updated as Record<string, unknown> });
+  revalidatePath('/admin/results'); revalidatePath('/results');
+  return { success: true };
+}
+
+export async function archiveResult(id: string): Promise<{ success: boolean; error?: string }> {
+  const admin = await requireAdmin();
+  const { data: oldData } = await supabaseAdmin.from('results').select('*').eq('id', id).maybeSingle();
+  if (!oldData) return { success: false, error: 'Result not found.' };
+  const { data: updated, error } = await supabaseAdmin.from('results').update({ is_published: false, archived_at: new Date().toISOString(), updated_at: new Date().toISOString() }).eq('id', id).select().single();
+  if (error) return { success: false, error: error.message };
+  await logAudit({ userId: admin.id, action: 'archive', entityType: 'result', entityId: id, oldData: oldData as Record<string, unknown>, newData: updated as Record<string, unknown> });
+  revalidatePath('/admin/results'); revalidatePath('/results');
+  return { success: true };
+}
+
+async function isResultSlugUnique(slug: string, excludeId?: string) {
+  let q = supabaseAdmin.from('results').select('id').eq('slug', slug);
+  if (excludeId) q = q.neq('id', excludeId);
+  const { data } = await q.limit(1);
+  return !data?.length;
+}
