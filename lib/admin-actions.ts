@@ -1055,3 +1055,27 @@ export async function updateCategory(id:string,data:CategoryFormData){const admi
 export interface StateFormData { name:string; slug:string; is_active:boolean; }
 export async function createState(data:StateFormData){const admin=await requireAdmin();const slug=slugify(data.slug);const{data:exists}=await supabaseAdmin.from('states').select('id').eq('slug',slug).limit(1);if(exists?.length)return{success:false,error:'A state with this slug already exists.'};const{data:created,error}=await supabaseAdmin.from('states').insert({name:data.name.trim(),slug,is_active:data.is_active}).select().single();if(error)return{success:false,error:error.message};await logAudit({userId:admin.id,action:'create',entityType:'state',entityId:created.id,newData:created as Record<string,unknown>});revalidatePath('/admin/states');revalidatePath('/jobs');return{success:true,id:created.id};}
 export async function updateState(id:string,data:StateFormData){const admin=await requireAdmin();const slug=slugify(data.slug);const{data:exists}=await supabaseAdmin.from('states').select('id').eq('slug',slug).neq('id',id).limit(1);if(exists?.length)return{success:false,error:'A state with this slug already exists.'};const{data:oldData}=await supabaseAdmin.from('states').select('*').eq('id',id).maybeSingle();if(!oldData)return{success:false,error:'State not found.'};const{data:updated,error}=await supabaseAdmin.from('states').update({name:data.name.trim(),slug,is_active:data.is_active}).eq('id',id).select().single();if(error)return{success:false,error:error.message};await logAudit({userId:admin.id,action:'update',entityType:'state',entityId:id,oldData:oldData as Record<string,unknown>,newData:updated as Record<string,unknown>});revalidatePath('/admin/states');revalidatePath('/jobs');return{success:true};}
+
+export interface UserRoleFormData { user_id:string; role:'user'|'admin'; }
+export async function updateUserRole(data:UserRoleFormData):Promise<{success:boolean;error?:string}>{
+  const admin=await requireAdmin();
+  if(data.user_id===admin.id)return{success:false,error:'You cannot change your own admin role.'};
+  const{data:profile}=await supabaseAdmin.from('profiles').select('id,user_id,role').eq('user_id',data.user_id).maybeSingle();
+  if(!profile)return{success:false,error:'User profile not found.'};
+  const{error:authError}=await supabaseAdmin.auth.admin.updateUserById(data.user_id,{app_metadata:{role:data.role}});
+  if(authError)return{success:false,error:authError.message};
+  const{error}=await supabaseAdmin.from('profiles').update({role:data.role,updated_at:new Date().toISOString()}).eq('user_id',data.user_id);
+  if(error)return{success:false,error:error.message};
+  await logAudit({userId:admin.id,action:'update_role',entityType:'user',entityId:data.user_id,oldData:{role:profile.role},newData:{role:data.role}});
+  revalidatePath('/admin/users');return{success:true};
+}
+export interface SiteSettingFormData { key:string; value:string; description:string; }
+export async function upsertSiteSetting(data:SiteSettingFormData):Promise<{success:boolean;error?:string}>{
+  const admin=await requireAdmin();const key=data.key.trim().toLowerCase().replace(/\\s+/g,'_');
+  if(!key)return{success:false,error:'Setting key is required.'};
+  const{data:oldData}=await supabaseAdmin.from('site_settings').select('*').eq('key',key).maybeSingle();
+  const{data:updated,error}=await supabaseAdmin.from('site_settings').upsert({key,value:data.value,description:data.description.trim()||null,updated_at:new Date().toISOString()},{onConflict:'key'}).select().single();
+  if(error)return{success:false,error:error.message};
+  await logAudit({userId:admin.id,action:oldData?'update':'create',entityType:'site_setting',entityId:updated.id,oldData:oldData as Record<string,unknown>|null,newData:updated as Record<string,unknown>});
+  revalidatePath('/admin/settings');return{success:true};
+}
