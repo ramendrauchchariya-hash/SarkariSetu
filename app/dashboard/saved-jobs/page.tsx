@@ -8,7 +8,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import { StatusBadge } from '@/components/site/status-badge';
 import { formatDate, formatPosts } from '@/lib/format';
-import type { JobStatus } from '@/lib/types';
+import type { ListingStatus } from '@/lib/types';
 
 type SavedJob = {
   id: string; recruitment_id: string; created_at: string;
@@ -65,7 +65,8 @@ export default function SavedJobsPage() {
             if (!job || !job.is_published || job.is_archived) return null;
             const vacancies = job.posts.flatMap((post) => post.vacancies ?? []).reduce((sum, vacancy) => sum + vacancy.vacancy_count, 0);
             const deadline = job.application_end;
-            const status = (job.status_override ?? (deadline && new Date(deadline) < new Date() ? 'closed' : 'active')) as JobStatus;
+            const rawStatus = job.status_override ?? (deadline && new Date(deadline) < new Date() ? 'closed' : 'active');
+            const status: ListingStatus = rawStatus === 'open' ? 'active' : rawStatus === 'result-out' || rawStatus === 'admit-card-available' || rawStatus === 'closing-soon' || rawStatus === 'upcoming' || rawStatus === 'closed' ? rawStatus : 'active';
             return (
               <Card key={item.id}>
                 <CardHeader className="pb-3">
