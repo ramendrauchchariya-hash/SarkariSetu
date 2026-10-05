@@ -7,7 +7,7 @@ import {
   LayoutDashboard,
   FileText,
   Archive,
-  Settings,
+  Settings, BarChart3,
   LogOut,
   Menu,
   X,
@@ -40,6 +40,7 @@ const NAV_ITEMS: NavItem[] = [
   { label: 'Organizations', href: '/admin/organizations', icon: Building2 },
   { label: 'Categories', href: '/admin/categories', icon: GraduationCap },
   { label: 'Users', href: '/admin/users', icon: Users },
+  { label: 'Analytics', href: '/admin/analytics', icon: BarChart3 },
   { label: 'Notifications', href: '/admin/notifications', icon: Bell },
   { label: 'Settings', href: '/admin/settings', icon: Settings },
 ];
