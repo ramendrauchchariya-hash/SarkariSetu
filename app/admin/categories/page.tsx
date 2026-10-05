@@ -1,14 +1,1 @@
-import { ComingSoon } from '@/components/site/coming-soon';
-
-export const metadata = { title: 'Admin — Categories' };
-
-export default function AdminCategoriesPage() {
-  return (
-    <ComingSoon
-      title="Manage Categories"
-      description="Configure job categories and qualifications. Admin functionality coming soon."
-      backHref="/admin"
-      backLabel="Back to Admin"
-    />
-  );
-}
+import Link from'next/link';import{requireAdmin}from'@/lib/admin-auth';import{supabaseAdmin}from'@/lib/supabase-server';import{AdminShell}from'@/components/admin/admin-shell';import{Button}from'@/components/ui/button';import{Badge}from'@/components/ui/badge';import{Plus}from'lucide-react';export const dynamic='force-dynamic';export default async function Page(){await requireAdmin();const{data}=await supabaseAdmin.from('categories').select('id,name,slug,description,is_active').order('name');return <AdminShell title="Manage Categories" breadcrumbs={[{label:'Admin',href:'/admin'},{label:'Categories'}]} actions={<Button asChild size="sm"><Link href="/admin/categories/new"><Plus className="mr-2 h-4 w-4"/>Add Category</Link></Button>}><div className="overflow-x-auto rounded-lg border bg-card"><table className="w-full text-sm"><thead><tr className="border-b bg-muted/30 text-left text-xs text-muted-foreground"><th className="px-4 py-3">Category</th><th className="px-4 py-3">Description</th><th className="px-4 py-3">Status</th><th className="px-4 py-3"></th></tr></thead><tbody className="divide-y">{(data??[]).map(c=><tr key={c.id}><td className="px-4 py-3"><Link className="font-medium hover:text-primary" href={'/admin/categories/'+c.id+'/edit'}>{c.name}</Link><p className="text-xs text-muted-foreground">{c.slug}</p></td><td className="max-w-md px-4 py-3 text-muted-foreground">{c.description??'—'}</td><td className="px-4 py-3">{c.is_active?<Badge variant="success">Active</Badge>:<Badge variant="outline">Inactive</Badge>}</td><td className="px-4 py-3 text-right"><Button asChild variant="outline" size="sm"><Link href={'/admin/categories/'+c.id+'/edit'}>Edit</Link></Button></td></tr>)}</tbody></table></div></AdminShell>}
