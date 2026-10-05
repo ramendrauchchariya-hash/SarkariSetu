@@ -13,7 +13,7 @@ type User = { id: string; email?: string | null };
 
 export default function DashboardPage() {
   const [user, setUser] = useState<User | null>(null);
-  const [counts, setCounts] = useState({ saved: 0, applications: 0, alerts: 0, exams: 0 });
+  const [counts, setCounts] = useState({ saved: 0, applications: 0, alerts: 0, exams: 0, admitCards: 0 });
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -25,11 +25,12 @@ export default function DashboardPage() {
         return;
       }
 
-      const [saved, applications, alerts, exams] = await Promise.all([
+      const [saved, applications, alerts, exams, admitCards] = await Promise.all([
         supabase.from('saved_jobs').select('id', { count: 'exact', head: true }).eq('user_id', user.id),
         supabase.from('application_tracker').select('id', { count: 'exact', head: true }).eq('user_id', user.id),
         supabase.from('notification_subscriptions').select('id', { count: 'exact', head: true }).eq('user_id', user.id),
         supabase.from('exam_tracking').select('id', { count: 'exact', head: true }).eq('user_id', user.id),
+        (supabase as any).from('admit_card_tracking').select('id', { count: 'exact', head: true }).eq('user_id', user.id),
       ]);
 
       setCounts({
@@ -37,6 +38,7 @@ export default function DashboardPage() {
         applications: applications.count ?? 0,
         alerts: alerts.count ?? 0,
         exams: exams.count ?? 0,
+        admitCards: admitCards.count ?? 0,
       });
       setLoading(false);
     }
@@ -74,6 +76,7 @@ export default function DashboardPage() {
     { title: 'My Applications', value: counts.applications, description: 'Track application progress', href: '/dashboard/applications', icon: ClipboardList },
     { title: 'Job Alerts', value: counts.alerts, description: 'Your notification preferences', href: '/dashboard/notifications', icon: Bell },
     { title: 'Tracked Exams', value: counts.exams, description: 'Important exam dates', href: '/dashboard/exams', icon: CalendarDays },
+    { title: 'Admit Cards', value: counts.admitCards, description: 'Track your admit cards', href: '/dashboard/admit-cards', icon: ClipboardList },
   ];
 
   return (
@@ -115,6 +118,7 @@ export default function DashboardPage() {
             <Button asChild variant="outline"><Link href="/dashboard/applications">Track Applications</Link></Button>
             <Button asChild variant="outline"><Link href="/dashboard/notifications">Manage Job Alerts</Link></Button>
             <Button asChild variant="outline"><Link href="/dashboard/exams">Track Exams</Link></Button>
+            <Button asChild variant="outline"><Link href="/dashboard/admit-cards">Track Admit Cards</Link></Button>
           </CardContent>
         </Card>
 
