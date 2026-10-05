@@ -122,7 +122,6 @@ export function HeroSection({ latestJobs, stats }: HeroSectionProps) {
             { icon: ArrowUpRight, value: stats.activeJobs, label: 'Published Jobs' },
             { icon: FileCheck2, value: stats.results, label: 'Results' },
             { icon: Download, value: stats.admitCards, label: 'Admit Cards' },
-            { icon: Bookmark, value: stats.users, label: 'Job Seekers' },
           ].map((stat) => (
             <div key={stat.label} className="rounded-xl border bg-card p-4 text-center shadow-sm">
               <stat.icon className="mx-auto h-4 w-4 text-primary" />
