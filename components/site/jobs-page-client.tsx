@@ -79,27 +79,43 @@ export function JobsPageClient({ jobs, total, totalPages, currentPage }: JobsPag
 
   const activeChips = useMemo(() => buildActiveFilterChips(filters), [filters]);
 
+  const navigateWithState = useCallback(
+    (nextFilters: JobFilterState, nextSearch: string, nextSort: SortOption, page = 1) => {
+      const params = filtersToSearchParams(nextFilters, nextSearch, nextSort, page);
+      const queryString = params.toString();
+      router.replace(queryString ? `${pathname}?${queryString}` : pathname, { scroll: false });
+    },
+    [pathname, router]
+  );
+
   const toggleFilter = useCallback((group: keyof JobFilterState, value: string) => {
     setFilters((prev) => {
       const current = prev[group];
       const updated = current.includes(value)
         ? current.filter((v) => v !== value)
         : [...current, value];
-      return { ...prev, [group]: updated };
+      const next = { ...prev, [group]: updated };
+      navigateWithState(next, search, sort, 1);
+      return next;
     });
-  }, []);
+  }, [navigateWithState, search, sort]);
 
   const removeFilter = useCallback((group: string, value: string) => {
-    setFilters((prev) => ({
-      ...prev,
-      [group]: prev[group as keyof JobFilterState].filter((v) => v !== value),
-    }));
-  }, []);
+    setFilters((prev) => {
+      const next = {
+        ...prev,
+        [group]: prev[group as keyof JobFilterState].filter((v) => v !== value),
+      };
+      navigateWithState(next, search, sort, 1);
+      return next;
+    });
+  }, [navigateWithState, search, sort]);
 
   const clearAllFilters = useCallback(() => {
     setFilters(EMPTY_FILTERS);
     setSearch('');
-  }, []);
+    navigateWithState(EMPTY_FILTERS, '', sort, 1);
+  }, [navigateWithState, sort]);
 
   const handlePageChange = (page: number) => {
     const params = filtersToSearchParams(filters, search, sort, page);
@@ -151,8 +167,7 @@ export function JobsPageClient({ jobs, total, totalPages, currentPage }: JobsPag
             <form
               onSubmit={(e) => {
                 e.preventDefault();
-                const params = filtersToSearchParams(filters, search, sort, 1);
-                router.replace(`${pathname}?${params.toString()}`);
+                navigateWithState(filters, search, sort, 1);
               }}
               className="flex w-full items-center gap-2 rounded-xl border bg-card p-1.5 shadow-sm focus-within:ring-2 focus-within:ring-ring focus-within:ring-offset-2"
               role="search"
@@ -207,8 +222,7 @@ export function JobsPageClient({ jobs, total, totalPages, currentPage }: JobsPag
                   value={sort}
                   onChange={(v) => {
                     setSort(v);
-                    const params = filtersToSearchParams(filters, search, v, currentPage);
-                    router.replace(`${pathname}?${params.toString()}`);
+                    navigateWithState(filters, search, v, 1);
                   }}
                 />
               </div>
