@@ -7,9 +7,9 @@ const tools = [
   { title: 'Age Calculator', description: 'Calculate age for government exam eligibility checks.', icon: CalendarDays, href: 'https://calculy-mu.vercel.app/age-calculator' },
   { title: 'CGPA to Percentage', description: 'Convert CGPA into percentage for application forms.', icon: Calculator, href: 'https://calculy-mu.vercel.app/cgpa-to-percentage' },
   { title: 'Percentage Calculator', description: 'Calculate percentages quickly for marks and results.', icon: Percent, href: 'https://calculy-mu.vercel.app/percentage-calculator' },
-  { title: 'Rank Predictor', description: 'Use the calculator to estimate rank from expected marks.', icon: TrendingUp, href: 'https://calculy-mu.vercel.app/rank-predictor' },
-  { title: 'Cut-off Analyser', description: 'Analyse scores against available cut-off data.', icon: BarChart3, href: 'https://calculy-mu.vercel.app/cut-off-analyser' },
-  { title: 'Fee Calculator', description: 'Estimate application fees using the calculator.', icon: Wallet, href: 'https://calculy-mu.vercel.app/fee-calculator' },
+  { title: 'Rank Predictor', description: 'Use the calculator to estimate rank from expected marks.', icon: TrendingUp, href: '/tools/rank-predictor' },
+  { title: 'Cut-off Analyser', description: 'Analyse scores against available cut-off data.', icon: BarChart3, href: '/tools/cut-off-analyser' },
+  { title: 'Fee Calculator', description: 'Estimate application fees using the calculator.', icon: Wallet, href: '/tools/fee-calculator' },
 ];
 
 export const metadata = { title: 'Tools — SarkariSetu', description: 'Useful calculators and exam preparation tools.' };
@@ -26,6 +26,6 @@ export default function ToolsPage() {
         <Button asChild className="mt-5 w-full"><a href={href} target="_blank" rel="noreferrer">Open Calculator <ChevronRight className="ml-1 h-4 w-4" /></a></Button>
       </CardContent></Card>)}
     </div>
-    <p className="mt-6 text-xs text-muted-foreground">Calculators open on Calculy in a new tab. Use official recruitment notifications for final eligibility and fee decisions.</p>
+    <p className="mt-6 text-xs text-muted-foreground">Age, CGPA and percentage calculators open on Calculy; Rank Predictor, Cut-off Analyser and Fee Calculator run directly on SarkariSetu. Use official recruitment notifications for final eligibility and fee decisions.</p>
   </div></SiteShell>;
 }
