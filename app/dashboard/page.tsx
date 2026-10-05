@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
-import { ArrowRight, Bell, Bookmark, ClipboardList, Loader2, UserCircle } from 'lucide-react';
+import { ArrowRight, Bell, Bookmark, CalendarDays, ClipboardList, Loader2, UserCircle } from 'lucide-react';
 import { supabase } from '@/lib/supabase-client';
 import { SiteShell } from '@/components/site/site-shell';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -13,7 +13,7 @@ type User = { id: string; email?: string | null };
 
 export default function DashboardPage() {
   const [user, setUser] = useState<User | null>(null);
-  const [counts, setCounts] = useState({ saved: 0, applications: 0, alerts: 0 });
+  const [counts, setCounts] = useState({ saved: 0, applications: 0, alerts: 0, exams: 0 });
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -25,16 +25,18 @@ export default function DashboardPage() {
         return;
       }
 
-      const [saved, applications, alerts] = await Promise.all([
+      const [saved, applications, alerts, exams] = await Promise.all([
         supabase.from('saved_jobs').select('id', { count: 'exact', head: true }).eq('user_id', user.id),
         supabase.from('application_tracker').select('id', { count: 'exact', head: true }).eq('user_id', user.id),
         supabase.from('notification_subscriptions').select('id', { count: 'exact', head: true }).eq('user_id', user.id),
+        supabase.from('exam_tracking').select('id', { count: 'exact', head: true }).eq('user_id', user.id),
       ]);
 
       setCounts({
         saved: saved.count ?? 0,
         applications: applications.count ?? 0,
         alerts: alerts.count ?? 0,
+        exams: exams.count ?? 0,
       });
       setLoading(false);
     }
@@ -71,6 +73,7 @@ export default function DashboardPage() {
     { title: 'Saved Jobs', value: counts.saved, description: 'Jobs you want to revisit', href: '/dashboard/saved-jobs', icon: Bookmark },
     { title: 'My Applications', value: counts.applications, description: 'Track application progress', href: '/dashboard/applications', icon: ClipboardList },
     { title: 'Job Alerts', value: counts.alerts, description: 'Your notification preferences', href: '/dashboard/notifications', icon: Bell },
+    { title: 'Tracked Exams', value: counts.exams, description: 'Important exam dates', href: '/dashboard/exams', icon: CalendarDays },
   ];
 
   return (
@@ -82,7 +85,7 @@ export default function DashboardPage() {
           <p className="mt-1 text-sm text-muted-foreground">{user.email ?? 'Signed-in user'}</p>
         </div>
 
-        <div className="grid gap-4 sm:grid-cols-3">
+        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
           {cards.map(({ title, value, description, href, icon: Icon }) => (
             <Card key={title} className="transition-shadow hover:shadow-sm">
               <CardHeader className="pb-3">
@@ -111,6 +114,7 @@ export default function DashboardPage() {
             <Button asChild variant="outline"><Link href="/dashboard/saved-jobs">View Saved Jobs</Link></Button>
             <Button asChild variant="outline"><Link href="/dashboard/applications">Track Applications</Link></Button>
             <Button asChild variant="outline"><Link href="/dashboard/notifications">Manage Job Alerts</Link></Button>
+            <Button asChild variant="outline"><Link href="/dashboard/exams">Track Exams</Link></Button>
           </CardContent>
         </Card>
 
