@@ -51,8 +51,13 @@ export function ResultCard({ result, className }: ResultCardProps) {
             <span className="truncate">{result.organization}</span>
           </p>
           <p className="mt-0.5 text-xs text-muted-foreground">
-            Released: {formatDate(result.resultDate)}
+            Released: {result.resultDate ? formatDate(result.resultDate) : 'Not specified'}
           </p>
+          {result.description && (
+            <p className="mt-1 line-clamp-2 text-xs text-muted-foreground">
+              {result.description}
+            </p>
+          )}
         </div>
         <div className="flex shrink-0 flex-col items-end gap-2">
           <StatusBadge status={result.status} />
