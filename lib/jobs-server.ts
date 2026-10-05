@@ -113,6 +113,38 @@ function departmentMatches(
       organizationName.includes('bank')
     )) return true;
 
+    if (candidate === 'railway' && (
+      departmentSlug.startsWith('railway-') ||
+      organizationSlug.includes('railway') ||
+      organizationName.includes('railway')
+    )) return true;
+
+    if (candidate === 'defence' && (
+      departmentSlug.startsWith('defence-') ||
+      organizationSlug.includes('defence') ||
+      organizationName.includes('defence') ||
+      organizationName.includes('armed-forces')
+    )) return true;
+
+    if (candidate === 'teaching' && (
+      departmentSlug.startsWith('teaching-') ||
+      organizationSlug.includes('education') ||
+      organizationName.includes('education') ||
+      organizationName.includes('school')
+    )) return true;
+
+    if (candidate === 'police' && (
+      departmentSlug.startsWith('police-') ||
+      organizationSlug.includes('police') ||
+      organizationName.includes('police')
+    )) return true;
+
+    if (candidate === 'state-government' && (
+      departmentSlug.startsWith('state-government-') ||
+      departmentSlug.includes('state-government') ||
+      organizationSlug.includes('state-government')
+    )) return true;
+
     if (candidate === 'psu' && departmentSlug.startsWith('psu-')) return true;
 
     if (candidate === 'upsc' && (
