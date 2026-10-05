@@ -266,6 +266,9 @@ export function dbResultToResultListing(r: Result & { organization_name: string 
     resultType: r.result_type === 'result' ? 'exam-result' : r.result_type,
     status: 'result-out',
     resultDate: r.result_date ?? r.updated_at,
+    description: r.description,
+    officialResultUrl: r.official_result_url,
+    officialWebsiteUrl: r.official_website_url,
   };
 }
 
@@ -277,6 +280,9 @@ export function dbAdmitCardToAdmitCardListing(r: AdmitCard & { organization_name
     examName: r.title,
     status: r.status === 'available' ? 'admit-card-available' : 'upcoming',
     examDate: r.exam_date ?? '',
+    releaseDate: r.release_date ?? '',
+    description: r.description,
+    officialUrl: r.official_url,
     downloadAvailable: r.status === 'available',
   };
 }
