@@ -10,7 +10,6 @@ interface HeroSectionProps {
     activeJobs: number;
     results: number;
     admitCards: number;
-    users: number;
   };
 }
 
