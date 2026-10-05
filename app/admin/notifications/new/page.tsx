@@ -1,0 +1,3 @@
+import {requireAdmin} from '@/lib/admin-auth';import {supabaseAdmin} from '@/lib/supabase-server';import {AdminShell} from '@/components/admin/admin-shell';import {NotificationBroadcastForm} from '@/components/admin/notification-broadcast-form';
+export const dynamic='force-dynamic';export const metadata={title:'Admin — Send Notification'};
+export default async function Page(){await requireAdmin();const{data:recruitments}=await supabaseAdmin.from('recruitments').select('id,title').eq('is_published',true).eq('is_archived',false).order('title');return <AdminShell title="Send Notification" breadcrumbs={[{label:'Admin',href:'/admin'},{label:'Notifications',href:'/admin/notifications'},{label:'Send'}]}><NotificationBroadcastForm recruitments={recruitments??[]}/></AdminShell>}
