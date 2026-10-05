@@ -28,18 +28,6 @@ export const examTools: ExamTool[] = [
     icon: 'Percent',
   },
   {
-    slug: 'rank-predictor',
-    title: 'Rank Predictor',
-    description: 'Estimate your rank based on expected marks.',
-    icon: 'TrendingUp',
-  },
-  {
-    slug: 'cut-off-analyser',
-    title: 'Cut-off Analyser',
-    description: 'Compare your score with previous years cut-off marks.',
-    icon: 'BarChart3',
-  },
-  {
     slug: 'fee-calculator',
     title: 'Fee Calculator',
     description: 'Calculate application fees based on category and number of posts.',
