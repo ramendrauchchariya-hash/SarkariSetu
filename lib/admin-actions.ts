@@ -1020,3 +1020,26 @@ async function isAdmitCardSlugUnique(slug:string,excludeId?:string){
  if(excludeId)q=q.neq('id',excludeId);
  const {data}=await q.limit(1);return !data?.length;
 }
+
+
+export interface NotificationFormData { title:string; message:string; notification_type:string; related_recruitment_id:string; audience:'all'|'job_alert_subscribers'; }
+
+export async function sendAdminNotification(data:NotificationFormData):Promise<{success:boolean;error?:string;count?:number}>{
+ const admin=await requireAdmin();
+ if(!data.title.trim())return{success:false,error:'Notification title is required.'};
+ let userIds:string[]=[];
+ if(data.audience==='all'){
+  const {data:users,error}=await supabaseAdmin.from('profiles').select('user_id').not('user_id','is',null);
+  if(error)return{success:false,error:error.message}; userIds=(users??[]).map((u:{user_id:string})=>u.user_id);
+ }else{
+  const {data:subs,error}=await supabaseAdmin.from('notification_subscriptions').select('user_id');
+  if(error)return{success:false,error:error.message}; userIds=Array.from(new Set((subs??[]).map((u:{user_id:string})=>u.user_id)));
+ }
+ if(!userIds.length)return{success:false,error:'No eligible users found.'};
+ const rows=userIds.map(user_id=>({user_id,title:data.title.trim(),message:data.message.trim()||null,notification_type:data.notification_type||'announcement',related_recruitment_id:data.related_recruitment_id||null,is_read:false}));
+ const {error}=await supabaseAdmin.from('notifications').insert(rows);
+ if(error)return{success:false,error:error.message};
+ await logAudit({userId:admin.id,action:'create',entityType:'notification_broadcast',entityId:admin.id,newData:{audience:data.audience,title:data.title,count:userIds.length}});
+ revalidatePath('/admin/notifications');revalidatePath('/dashboard/notification-center');
+ return{success:true,count:userIds.length};
+}
