@@ -1,14 +1,18 @@
-import { ComingSoon } from '@/components/site/coming-soon';
+import { NotificationSettings } from '@/components/site/notification-settings';
 
-export const metadata = { title: 'Notifications' };
+export const metadata = { title: 'Job Alerts & Notifications' };
 
 export default function NotificationsPage() {
   return (
-    <ComingSoon
-      title="Notifications"
-      description="Get alerts about new jobs, results, admit cards and deadlines. Coming soon."
-      backHref="/dashboard"
-      backLabel="Back to Dashboard"
-    />
+    <main className="container-page py-8">
+      <div className="mb-8">
+        <p className="text-sm font-medium text-primary">My Account</p>
+        <h1 className="mt-1 text-3xl font-bold tracking-tight">Job Alerts & Notifications</h1>
+        <p className="mt-2 max-w-2xl text-muted-foreground">
+          Set preferences for government jobs you want to track. You can update or remove an alert at any time.
+        </p>
+      </div>
+      <NotificationSettings />
+    </main>
   );
 }
