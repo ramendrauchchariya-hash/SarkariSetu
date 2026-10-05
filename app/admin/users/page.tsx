@@ -1,14 +1,1 @@
-import { ComingSoon } from '@/components/site/coming-soon';
-
-export const metadata = { title: 'Admin — Users' };
-
-export default function AdminUsersPage() {
-  return (
-    <ComingSoon
-      title="Manage Users"
-      description="View and manage registered users and their roles. Admin functionality coming soon."
-      backHref="/admin"
-      backLabel="Back to Admin"
-    />
-  );
-}
+import{requireAdmin}from'@/lib/admin-auth';import{supabaseAdmin}from'@/lib/supabase-server';import{AdminShell}from'@/components/admin/admin-shell';import{Badge}from'@/components/ui/badge';import{UserRoleForm}from'@/components/admin/user-role-form';import{formatDate}from'@/lib/format';export const dynamic='force-dynamic';export const metadata={title:'Admin — Users'};export default async function Page(){const admin=await requireAdmin();const{data:authData,error}=await supabaseAdmin.auth.admin.listUsers({page:1,perPage:1000});const users=authData?.users??[];const{data:profiles}=await supabaseAdmin.from('profiles').select('user_id,full_name,role');const profileMap=new Map((profiles??[]).map(p=>[p.user_id,p]));return <AdminShell title="Manage Users" breadcrumbs={[{label:'Admin',href:'/admin'},{label:'Users'}]}><div className="mb-4 text-sm text-muted-foreground">{error?'Unable to load users.':users.length+' registered user'+(users.length===1?'':'s')}</div><div className="overflow-x-auto rounded-lg border bg-card"><table className="w-full text-sm"><thead><tr className="border-b bg-muted/30 text-left text-xs text-muted-foreground"><th className="px-4 py-3">User</th><th className="px-4 py-3">Name</th><th className="px-4 py-3">Role</th><th className="px-4 py-3">Joined</th></tr></thead><tbody className="divide-y">{users.map(u=>{const p=profileMap.get(u.id);const role=(p?.role??u.app_metadata?.role??'user') as 'user'|'admin';return <tr key={u.id}><td className="px-4 py-3"><div className="font-medium">{u.email??'No email'}</div>{u.id===admin.id&&<Badge variant="outline" className="mt-1">You</Badge>}</td><td className="px-4 py-3">{p?.full_name??'—'}</td><td className="px-4 py-3"><UserRoleForm userId={u.id} role={role}/></td><td className="px-4 py-3 text-muted-foreground">{formatDate(u.created_at)}</td></tr>})}</tbody></table></div></AdminShell>}
