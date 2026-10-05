@@ -1,14 +1,2 @@
-import { ComingSoon } from '@/components/site/coming-soon';
-
-export const metadata = { title: 'Admin — Organizations' };
-
-export default function AdminOrganizationsPage() {
-  return (
-    <ComingSoon
-      title="Manage Organizations"
-      description="Add and edit recruiting organizations and departments. Admin functionality coming soon."
-      backHref="/admin"
-      backLabel="Back to Admin"
-    />
-  );
-}
+import Link from'next/link';import{requireAdmin}from'@/lib/admin-auth';import{supabaseAdmin}from'@/lib/supabase-server';import{AdminShell}from'@/components/admin/admin-shell';import{Button}from'@/components/ui/button';import{Badge}from'@/components/ui/badge';import{Plus}from'lucide-react';
+export const dynamic='force-dynamic';export default async function Page(){await requireAdmin();const{data}=await supabaseAdmin.from('organizations').select('id,name,slug,short_name,organization_type,official_website_url,is_active').order('name');return <AdminShell title="Manage Organizations" breadcrumbs={[{label:'Admin',href:'/admin'},{label:'Organizations'}]} actions={<Button asChild size="sm"><Link href="/admin/organizations/new"><Plus className="mr-2 h-4 w-4"/>Add Organization</Link></Button>}><div className="overflow-x-auto rounded-lg border bg-card"><table className="w-full text-sm"><thead><tr className="border-b bg-muted/30 text-left text-xs text-muted-foreground"><th className="px-4 py-3">Organization</th><th className="px-4 py-3">Type</th><th className="px-4 py-3">Website</th><th className="px-4 py-3">Status</th><th className="px-4 py-3"></th></tr></thead><tbody className="divide-y">{(data??[]).map(o=><tr key={o.id}><td className="px-4 py-3"><Link className="font-medium hover:text-primary" href={'/admin/organizations/'+o.id+'/edit'}>{o.name}</Link><p className="text-xs text-muted-foreground">{o.short_name??o.slug}</p></td><td className="px-4 py-3 text-muted-foreground">{o.organization_type??'—'}</td><td className="px-4 py-3 text-muted-foreground">{o.official_website_url?'Configured':'—'}</td><td className="px-4 py-3">{o.is_active?<Badge variant="success">Active</Badge>:<Badge variant="outline">Inactive</Badge>}</td><td className="px-4 py-3 text-right"><Button asChild variant="outline" size="sm"><Link href={'/admin/organizations/'+o.id+'/edit'}>Edit</Link></Button></td></tr>)}</tbody></table></div></AdminShell>}
