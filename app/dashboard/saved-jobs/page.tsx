@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { Bookmark, ExternalLink, Loader2, Trash2 } from 'lucide-react';
 import { supabase } from '@/lib/supabase-client';
 import { Button } from '@/components/ui/button';
+import { SiteShell } from '@/components/site/site-shell';
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import { StatusBadge } from '@/components/site/status-badge';
 import { formatDate, formatPosts } from '@/lib/format';
@@ -43,7 +44,7 @@ export default function SavedJobsPage() {
   }
 
   return (
-    <main className="container-page py-8">
+    <SiteShell><main className="container-page py-8">
       <div className="mb-8">
         <p className="text-sm font-medium text-primary">My Account</p>
         <h1 className="mt-1 text-3xl font-bold tracking-tight">Saved Jobs</h1>
@@ -96,6 +97,6 @@ export default function SavedJobsPage() {
           })}
         </div>
       )}
-    </main>
+    </main></SiteShell>
   );
 }
