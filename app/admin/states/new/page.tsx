@@ -1,0 +1,1 @@
+import{requireAdmin}from'@/lib/admin-auth';import{AdminShell}from'@/components/admin/admin-shell';import{StateForm}from'@/components/admin/state-form';export default async function Page(){await requireAdmin();return <AdminShell title="Add State" breadcrumbs={[{label:'Admin',href:'/admin'},{label:'States',href:'/admin/states'},{label:'Add'}]}><StateForm/></AdminShell>}
