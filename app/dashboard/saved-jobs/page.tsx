@@ -81,7 +81,7 @@ export default function SavedJobsPage() {
                 </CardHeader>
                 <CardContent>
                   <div className="grid gap-3 text-sm text-muted-foreground sm:grid-cols-3">
-                    <span>Deadline: <strong className="text-foreground">{formatDate(deadline)}</strong></span>
+                    <span>Deadline: <strong className="text-foreground">{deadline ? formatDate(deadline) : 'Not specified'}</strong></span>
                     <span>Vacancies: <strong className="text-foreground">{formatPosts(vacancies)}</strong></span>
                     <span>Saved: <strong className="text-foreground">{formatDate(item.created_at)}</strong></span>
                   </div>
