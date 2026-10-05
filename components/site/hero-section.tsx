@@ -1,4 +1,4 @@
-import { Search, ArrowUpRight, FileCheck2, Bookmark, Download } from 'lucide-react';
+import { Search, ArrowUpRight, FileCheck2, Download } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import type { JobListing } from '@/lib/types';
 
