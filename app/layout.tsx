@@ -25,12 +25,12 @@ export const metadata: Metadata = {
   },
   description:
     'Find government jobs, exams, results, admit cards and useful preparation tools in one simple platform built for Indian job seekers.',
+  alternates: { canonical: siteUrl },
   keywords: [
     'government jobs',
     'sarkari naukri',
     'government exams',
     'admit card',
-    'answer key',
     'results',
     'admissions',
     'India jobs',
