@@ -1,0 +1,15 @@
+'use client';
+
+import { useState } from 'react';
+import { useRouter } from 'next/navigation';
+import { Button } from '@/components/ui/button';
+import { publishResult, unpublishResult, archiveResult } from '@/lib/admin-actions';
+import { Send, EyeOff, Archive, Loader2 } from 'lucide-react';
+import { toast } from 'sonner';
+
+export function ResultActions({id,title,published,archived}:{id:string;title:string;published:boolean;archived:boolean}){
+ const router=useRouter(); const [busy,setBusy]=useState(false);
+ async function act(fn:()=>Promise<{success:boolean;error?:string}>,success:string){setBusy(true);const r=await fn();setBusy(false);if(r.success){toast.success(success);router.refresh()}else toast.error(r.error??'Action failed.')}
+ if(archived)return null;
+ return <div className="flex gap-1">{published?<Button variant="ghost" size="icon" disabled={busy} title="Unpublish" onClick={()=>act(()=>unpublishResult(id), '"'+title+'" unpublished')}>{busy?<Loader2 className="h-4 w-4 animate-spin"/>:<EyeOff className="h-4 w-4"/>}</Button>:<Button variant="ghost" size="icon" disabled={busy} title="Publish" onClick={()=>act(()=>publishResult(id), '"'+title+'" published')}>{busy?<Loader2 className="h-4 w-4 animate-spin"/>:<Send className="h-4 w-4"/>}</Button>}<Button variant="ghost" size="icon" disabled={busy} title="Archive" onClick={()=>act(()=>archiveResult(id), '"'+title+'" archived')}><Archive className="h-4 w-4"/></Button></div>;
+}
