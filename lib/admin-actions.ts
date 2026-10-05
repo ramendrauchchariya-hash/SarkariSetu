@@ -940,3 +940,83 @@ async function isResultSlugUnique(slug: string, excludeId?: string) {
   const { data } = await q.limit(1);
   return !data?.length;
 }
+
+
+export interface AdmitCardFormData {
+  title: string;
+  slug: string;
+  organization_id: string;
+  recruitment_id: string;
+  exam_date: string;
+  release_date: string;
+  status: string;
+  description: string;
+  official_url: string;
+}
+
+export async function createAdmitCard(data: AdmitCardFormData): Promise<{ success: boolean; error?: string; id?: string }> {
+  const admin = await requireAdmin();
+  const slug = slugify(data.slug);
+  if (!(await isAdmitCardSlugUnique(slug))) return { success: false, error: 'An admit card with this slug already exists.' };
+  const { data: created, error } = await supabaseAdmin.from('admit_cards').insert({
+    title: data.title.trim(), slug, organization_id: data.organization_id || null,
+    recruitment_id: data.recruitment_id || null, exam_date: data.exam_date || null,
+    release_date: data.release_date || null, status: data.status || 'available',
+    description: data.description.trim() || null, official_url: data.official_url || null,
+    is_published: false
+  }).select().single();
+  if (error) return { success: false, error: error.message };
+  await logAudit({userId:admin.id,action:'create',entityType:'admit_card',entityId:created.id,newData:created as Record<string,unknown>});
+  revalidatePath('/admin/admit-cards'); revalidatePath('/admit-cards');
+  return {success:true,id:created.id};
+}
+
+export async function updateAdmitCard(id:string,data:AdmitCardFormData):Promise<{success:boolean;error?:string}>{
+  const admin=await requireAdmin(); const slug=slugify(data.slug);
+  if(!(await isAdmitCardSlugUnique(slug,id)))return{success:false,error:'An admit card with this slug already exists.'};
+  const {data:oldData}=await supabaseAdmin.from('admit_cards').select('*').eq('id',id).maybeSingle();
+  if(!oldData)return{success:false,error:'Admit card not found.'};
+  const {data:updated,error}=await supabaseAdmin.from('admit_cards').update({
+    title:data.title.trim(),slug,organization_id:data.organization_id||null,recruitment_id:data.recruitment_id||null,
+    exam_date:data.exam_date||null,release_date:data.release_date||null,status:data.status||'available',
+    description:data.description.trim()||null,official_url:data.official_url||null,updated_at:new Date().toISOString()
+  }).eq('id',id).select().single();
+  if(error)return{success:false,error:error.message};
+  await logAudit({userId:admin.id,action:'update',entityType:'admit_card',entityId:id,oldData:oldData as Record<string,unknown>,newData:updated as Record<string,unknown>});
+  revalidatePath('/admin/admit-cards');revalidatePath('/admit-cards');revalidatePath('/admit-cards/'+slug);
+  return{success:true};
+}
+
+export async function publishAdmitCard(id:string):Promise<{success:boolean;error?:string}>{
+  const admin=await requireAdmin();const {data:oldData}=await supabaseAdmin.from('admit_cards').select('*').eq('id',id).maybeSingle();
+  if(!oldData)return{success:false,error:'Admit card not found.'};
+  if(!oldData.official_url)return{success:false,error:'Official admit card URL is required before publishing.'};
+  const {data:updated,error}=await supabaseAdmin.from('admit_cards').update({is_published:true,updated_at:new Date().toISOString()}).eq('id',id).select().single();
+  if(error)return{success:false,error:error.message};
+  await logAudit({userId:admin.id,action:'publish',entityType:'admit_card',entityId:id,oldData:oldData as Record<string,unknown>,newData:updated as Record<string,unknown>});
+  revalidatePath('/admin/admit-cards');revalidatePath('/admit-cards');return{success:true};
+}
+
+export async function unpublishAdmitCard(id:string):Promise<{success:boolean;error?:string}>{
+  const admin=await requireAdmin();const {data:oldData}=await supabaseAdmin.from('admit_cards').select('*').eq('id',id).maybeSingle();
+  if(!oldData)return{success:false,error:'Admit card not found.'};
+  const {data:updated,error}=await supabaseAdmin.from('admit_cards').update({is_published:false,updated_at:new Date().toISOString()}).eq('id',id).select().single();
+  if(error)return{success:false,error:error.message};
+  await logAudit({userId:admin.id,action:'unpublish',entityType:'admit_card',entityId:id,oldData:oldData as Record<string,unknown>,newData:updated as Record<string,unknown>});
+  revalidatePath('/admin/admit-cards');revalidatePath('/admit-cards');return{success:true};
+}
+
+export async function archiveAdmitCard(id:string):Promise<{success:boolean;error?:string}>{
+  const admin=await requireAdmin();const {data:oldData}=await supabaseAdmin.from('admit_cards').select('*').eq('id',id).maybeSingle();
+  if(!oldData)return{success:false,error:'Admit card not found.'};
+  const {data:updated,error}=await supabaseAdmin.from('admit_cards').update({is_published:false,archived_at:new Date().toISOString(),updated_at:new Date().toISOString()}).eq('id',id).select().single();
+  if(error)return{success:false,error:error.message};
+  await logAudit({userId:admin.id,action:'archive',entityType:'admit_card',entityId:id,oldData:oldData as Record<string,unknown>,newData:updated as Record<string,unknown>});
+  revalidatePath('/admin/admit-cards');revalidatePath('/admit-cards');return{success:true};
+}
+
+async function isAdmitCardSlugUnique(slug:string,excludeId?:string){
+ let q=supabaseAdmin.from('admit_cards').select('id').eq('slug',slug);
+ if(excludeId)q=q.neq('id',excludeId);
+ const {data}=await q.limit(1);return !data?.length;
+}
