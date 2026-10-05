@@ -117,7 +117,7 @@ export function HeroSection({ latestJobs, stats }: HeroSectionProps) {
           </div>
         </div>
 
-        <div className="mt-10 grid grid-cols-2 gap-3 sm:grid-cols-4">
+        <div className="mt-10 grid grid-cols-1 gap-3 sm:grid-cols-3">
           {[
             { icon: ArrowUpRight, value: stats.activeJobs, label: 'Published Jobs' },
             { icon: FileCheck2, value: stats.results, label: 'Results' },
