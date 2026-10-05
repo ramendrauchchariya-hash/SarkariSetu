@@ -43,6 +43,7 @@ import { DetailSection } from '@/components/site/detail-section';
 import { InfoCard } from '@/components/site/info-card';
 import { RecruitmentTimeline, type TimelineStep } from '@/components/site/recruitment-timeline';
 import { SaveJobButton } from '@/components/site/save-job-button';
+import { ApplicationTracker } from '@/components/site/application-tracker';
 import { ShareButton } from '@/components/site/share-button';
 import { JobListingCard } from '@/components/site/job-listing-card';
 import { EmptyState } from '@/components/site/empty-state';
@@ -234,6 +235,7 @@ export function JobDetailsView({ job, relatedJobs: relatedJobsProp = [] }: JobDe
               )}
               <SaveJobButton jobId={job.id} size="lg" />
               <ShareButton title={job.title} />
+              <ApplicationTracker jobId={job.id} jobTitle={job.title} />
             </div>
           </div>
         </div>
@@ -658,6 +660,7 @@ export function JobDetailsView({ job, relatedJobs: relatedJobsProp = [] }: JobDe
                   )}
                   <SaveJobButton jobId={job.id} className="w-full" />
                   <ShareButton title={job.title} className="w-full" />
+                  <ApplicationTracker jobId={job.id} jobTitle={job.title} />
                 </div>
               </Card>
 
