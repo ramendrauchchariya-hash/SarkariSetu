@@ -20,8 +20,14 @@ export interface JobListing {
   postedDate: string; qualification: string; officialApplicationUrl?: string | null;
 }
 export interface ExamListing { id: string; name: string; organization: string; category: CategorySlug; examDate: string; applicationDeadline: string; applicationStatus: ListingStatus; posts: number; }
-export interface ResultListing { id: string; title: string; organization: string; resultType: ResultType; status: ListingStatus; resultDate: string; }
-export interface AdmitCardListing { id: string; title: string; organization: string; examName: string; status: ListingStatus; examDate: string; downloadAvailable: boolean; }
+export interface ResultListing {
+  id: string; title: string; organization: string; resultType: ResultType; status: ListingStatus;
+  resultDate: string; description?: string | null; officialResultUrl?: string | null; officialWebsiteUrl?: string | null;
+}
+export interface AdmitCardListing {
+  id: string; title: string; organization: string; examName: string; status: ListingStatus;
+  examDate: string; releaseDate: string; description?: string | null; officialUrl?: string | null; downloadAvailable: boolean;
+}
 export interface AnswerKeyListing { id: string; title: string; organization: string; status: ListingStatus; releasedDate: string; }
 export interface AdmissionListing { id: string; institution: string; course: string; status: ListingStatus; applicationDeadline: string; }
 export interface ExamTool { slug: string; title: string; description: string; icon: string; }
