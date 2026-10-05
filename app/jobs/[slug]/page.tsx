@@ -46,5 +46,50 @@ export default async function JobDetailsPage({ params }: PageProps) {
   const relatedRecruitments = await serverGetRelatedRecruitments(recruitment, 4);
   const relatedJobs = relatedRecruitments.map(recruitmentToJobPosting);
 
-  return <JobDetailsView job={job} relatedJobs={relatedJobs} />;
+  const jobSchema = {
+    '@context': 'https://schema.org',
+    '@type': 'JobPosting',
+    title: recruitment.title,
+    description: recruitment.description ?? ('Government job opportunity: ' + recruitment.title),
+    datePosted: recruitment.posted_date ?? recruitment.created_at,
+    ...(recruitment.application_end ? { validThrough: recruitment.application_end } : {}),
+    employmentType:
+      recruitment.job_type === 'permanent' ? 'FULL_TIME' :
+      recruitment.job_type === 'contract' ? 'CONTRACTOR' :
+      recruitment.job_type === 'internship' ? 'INTERN' :
+      'TEMPORARY',
+    hiringOrganization: {
+      '@type': 'Organization',
+      name: recruitment.organization?.name ?? 'Government Organization',
+      ...(recruitment.official_website_url || recruitment.organization?.official_website_url
+        ? { sameAs: recruitment.official_website_url ?? recruitment.organization?.official_website_url }
+        : {}),
+    },
+    jobLocation: {
+      '@type': 'Place',
+      address: {
+        '@type': 'PostalAddress',
+        addressCountry: 'IN',
+      },
+    },
+    ...(job.salaryMax > 0 ? {
+      baseSalary: {
+        '@type': 'MonetaryAmount',
+        currency: 'INR',
+        value: {
+          '@type': 'QuantitativeValue',
+          minValue: job.salaryMin || job.salaryMax,
+          maxValue: job.salaryMax,
+          unitText: 'MONTH',
+        },
+      },
+    } : {}),
+  };
+
+  return (
+    <>
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jobSchema) }} />
+      <JobDetailsView job={job} relatedJobs={relatedJobs} />
+    </>
+  );
 }
