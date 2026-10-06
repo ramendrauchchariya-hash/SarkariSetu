@@ -163,6 +163,11 @@ export interface SelectionProcessStep {
 export interface ExamPatternSubject {
   id: string;
   recruitment_id: string;
+  stage_number: number;
+  stage_name: string;
+  paper_number: number;
+  paper_name: string;
+  post_id: string | null;
   subject: string;
   questions: number | null;
   marks: number | null;
