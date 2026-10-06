@@ -214,6 +214,11 @@ export function JobEditorClient(props: Props) {
         })),
         exam_patterns: (props.examPatterns ?? []).map((e) => ({
           id: e.id as string,
+          stage_number: e.stage_number as number ?? 1,
+          stage_name: e.stage_name as string ?? 'Tier 1',
+          paper_number: e.paper_number as number ?? 1,
+          paper_name: e.paper_name as string ?? 'Paper 1',
+          post_id: e.post_id as string ?? '',
           subject: e.subject as string,
           questions: e.questions?.toString() ?? '',
           marks: e.marks?.toString() ?? '',
@@ -434,6 +439,7 @@ export function JobEditorClient(props: Props) {
     setForm((prev) => ({
       ...prev,
       exam_patterns: [...prev.exam_patterns, {
+        stage_number: 1, stage_name: 'Tier 1', paper_number: 1, paper_name: 'Paper 1', post_id: '',
         subject: '', questions: '', marks: '', duration_minutes: '', negative_marking: '', mode: '',
       }],
     }));
@@ -1068,73 +1074,78 @@ export function JobEditorClient(props: Props) {
             <Card className="shadow-sm">
               <CardHeader>
                 <div className="flex items-center justify-between">
-                  <CardTitle className="text-base">Exam Pattern</CardTitle>
+                  <div>
+                    <CardTitle className="text-base">Exam Pattern</CardTitle>
+                    <p className="text-xs text-muted-foreground mt-1">Supports multiple tiers, papers, and post-specific patterns.</p>
+                  </div>
                   <Button type="button" variant="outline" size="sm" onClick={addExamPattern} className="gap-1">
-                    <Plus className="h-3 w-3" /> Add Subject
+                    <Plus className="h-3 w-3" /> Add Paper / Subject
                   </Button>
                 </div>
               </CardHeader>
-              <CardContent className="space-y-2">
+              <CardContent className="space-y-3">
                 {form.exam_patterns.map((e, i) => (
-                  <div key={i} className="flex flex-wrap items-end gap-2 rounded-md border p-3">
-                    <div className="flex-1 space-y-1">
-                      <Label className="text-xs">Subject</Label>
-                      <Input value={e.subject} onChange={(ev) => {
-                        const items = [...form.exam_patterns];
-                        items[i] = { ...items[i], subject: ev.target.value };
-                        update('exam_patterns', items);
-                      }} placeholder="e.g., General Intelligence & Reasoning" />
+                  <div key={i} className="rounded-md border p-3 space-y-3">
+                    <div className="grid grid-cols-1 md:grid-cols-4 gap-2">
+                      <div className="space-y-1">
+                        <Label className="text-xs">Tier / Stage</Label>
+                        <Input value={e.stage_name} onChange={(ev) => {
+                          const items = [...form.exam_patterns]; items[i] = { ...items[i], stage_name: ev.target.value };
+                          update('exam_patterns', items);
+                        }} placeholder="Tier 1" />
+                      </div>
+                      <div className="space-y-1">
+                        <Label className="text-xs">Stage No.</Label>
+                        <Input type="number" min="1" value={e.stage_number} onChange={(ev) => {
+                          const items = [...form.exam_patterns]; items[i] = { ...items[i], stage_number: Number(ev.target.value) || 1 };
+                          update('exam_patterns', items);
+                        }} />
+                      </div>
+                      <div className="space-y-1">
+                        <Label className="text-xs">Paper</Label>
+                        <Input value={e.paper_name} onChange={(ev) => {
+                          const items = [...form.exam_patterns]; items[i] = { ...items[i], paper_name: ev.target.value };
+                          update('exam_patterns', items);
+                        }} placeholder="Paper 1" />
+                      </div>
+                      <div className="space-y-1">
+                        <Label className="text-xs">Paper No.</Label>
+                        <Input type="number" min="1" value={e.paper_number} onChange={(ev) => {
+                          const items = [...form.exam_patterns]; items[i] = { ...items[i], paper_number: Number(ev.target.value) || 1 };
+                          update('exam_patterns', items);
+                        }} />
+                      </div>
                     </div>
-                    <div className="space-y-1">
-                      <Label className="text-xs">Questions</Label>
-                      <Input type="number" className="h-9 w-[100px]" value={e.questions} onChange={(ev) => {
-                        const items = [...form.exam_patterns];
-                        items[i] = { ...items[i], questions: ev.target.value };
-                        update('exam_patterns', items);
-                      }} />
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-2">
+                      <div className="space-y-1">
+                        <Label className="text-xs">Post Specific (optional)</Label>
+                        <Select value={e.post_id || 'all'} onValueChange={(val) => {
+                          const items = [...form.exam_patterns]; items[i] = { ...items[i], post_id: val === 'all' ? '' : val };
+                          update('exam_patterns', items);
+                        }}>
+                          <SelectTrigger className="h-9"><SelectValue placeholder="All Posts" /></SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="all">All Posts</SelectItem>
+                            {form.posts.map((p, idx) => <SelectItem key={p.id || idx} value={p.id || `post-${idx}`}>{p.title || `Post ${idx + 1}`}</SelectItem>)}
+                          </SelectContent>
+                        </Select>
+                      </div>
+                      <div className="space-y-1 md:col-span-2">
+                        <Label className="text-xs">Subject</Label>
+                        <Input value={e.subject} onChange={(ev) => {
+                          const items = [...form.exam_patterns]; items[i] = { ...items[i], subject: ev.target.value };
+                          update('exam_patterns', items);
+                        }} placeholder="e.g., General Intelligence & Reasoning" />
+                      </div>
                     </div>
-                    <div className="space-y-1">
-                      <Label className="text-xs">Marks</Label>
-                      <Input type="number" className="h-9 w-[100px]" value={e.marks} onChange={(ev) => {
-                        const items = [...form.exam_patterns];
-                        items[i] = { ...items[i], marks: ev.target.value };
-                        update('exam_patterns', items);
-                      }} />
+                    <div className="flex flex-wrap items-end gap-2">
+                      <div className="space-y-1"><Label className="text-xs">Questions</Label><Input type="number" className="h-9 w-[100px]" value={e.questions} onChange={(ev) => { const items=[...form.exam_patterns]; items[i]={...items[i],questions:ev.target.value}; update('exam_patterns',items); }} /></div>
+                      <div className="space-y-1"><Label className="text-xs">Marks</Label><Input type="number" className="h-9 w-[100px]" value={e.marks} onChange={(ev) => { const items=[...form.exam_patterns]; items[i]={...items[i],marks:ev.target.value}; update('exam_patterns',items); }} /></div>
+                      <div className="space-y-1"><Label className="text-xs">Duration (min)</Label><Input type="number" className="h-9 w-[110px]" value={e.duration_minutes} onChange={(ev) => { const items=[...form.exam_patterns]; items[i]={...items[i],duration_minutes:ev.target.value}; update('exam_patterns',items); }} /></div>
+                      <div className="space-y-1"><Label className="text-xs">Negative Marking</Label><Input className="h-9 w-[160px]" value={e.negative_marking} onChange={(ev) => { const items=[...form.exam_patterns]; items[i]={...items[i],negative_marking:ev.target.value}; update('exam_patterns',items); }} placeholder="e.g., 0.50 per wrong" /></div>
+                      <div className="space-y-1"><Label className="text-xs">Mode</Label><Select value={e.mode || 'none'} onValueChange={(val) => { const items=[...form.exam_patterns]; items[i]={...items[i],mode:val==='none'?'':val}; update('exam_patterns',items); }}><SelectTrigger className="h-9 w-[180px]"><SelectValue placeholder="—" /></SelectTrigger><SelectContent>{examModeOptions.filter((o) => o.value).map((o) => <SelectItem key={o.value} value={o.value}>{o.label}</SelectItem>)}</SelectContent></Select></div>
+                      <Button type="button" variant="ghost" size="icon" className="h-9 w-9" onClick={() => update('exam_patterns', form.exam_patterns.filter((_, idx) => idx !== i))}><Trash2 className="h-4 w-4 text-destructive" /></Button>
                     </div>
-                    <div className="space-y-1">
-                      <Label className="text-xs">Duration (min)</Label>
-                      <Input type="number" className="h-9 w-[100px]" value={e.duration_minutes} onChange={(ev) => {
-                        const items = [...form.exam_patterns];
-                        items[i] = { ...items[i], duration_minutes: ev.target.value };
-                        update('exam_patterns', items);
-                      }} />
-                    </div>
-                    <div className="space-y-1">
-                      <Label className="text-xs">Negative Marking</Label>
-                      <Input className="h-9 w-[160px]" value={e.negative_marking} onChange={(ev) => {
-                        const items = [...form.exam_patterns];
-                        items[i] = { ...items[i], negative_marking: ev.target.value };
-                        update('exam_patterns', items);
-                      }} placeholder="e.g., 0.50 per wrong" />
-                    </div>
-                    <div className="space-y-1">
-                      <Label className="text-xs">Mode</Label>
-                      <Select value={e.mode || 'none'} onValueChange={(val) => {
-                        const items = [...form.exam_patterns];
-                        items[i] = { ...items[i], mode: val === 'none' ? '' : val };
-                        update('exam_patterns', items);
-                      }}>
-                        <SelectTrigger className="h-9 w-[180px]"><SelectValue placeholder="—" /></SelectTrigger>
-                        <SelectContent>
-                          {examModeOptions.filter((o) => o.value).map((o) => <SelectItem key={o.value} value={o.value}>{o.label}</SelectItem>)}
-                        </SelectContent>
-                      </Select>
-                    </div>
-                    <Button type="button" variant="ghost" size="icon" className="h-9 w-9" onClick={() => {
-                      update('exam_patterns', form.exam_patterns.filter((_, idx) => idx !== i));
-                    }}>
-                      <Trash2 className="h-4 w-4 text-destructive" />
-                    </Button>
                   </div>
                 ))}
                 {form.exam_patterns.length === 0 && <p className="text-sm text-muted-foreground">No exam pattern subjects added.</p>}
