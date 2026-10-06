@@ -74,7 +74,7 @@ function slugifyDepartment(value: string): string {
   return normalizeText(value).replace(/ /g, '-');
 }
 
-function normalizeQualification(value: string): string {
+function normalizeQualification(value: string | null | undefined): string {
   return normalizeText(value);
 }
 
