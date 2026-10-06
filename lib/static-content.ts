@@ -14,24 +14,28 @@ export const examTools: ExamTool[] = [
     title: 'Age Calculator',
     description: 'Calculate your exact age as on a specific date for eligibility checks.',
     icon: 'CalendarDays',
+    href: 'https://calculy-mu.vercel.app/calculators/age-calculator',
   },
   {
     slug: 'cgpa-to-percentage',
     title: 'CGPA to Percentage',
     description: 'Convert your CGPA to percentage for application forms.',
     icon: 'Calculator',
+    href: 'https://calculy-mu.vercel.app/calculators/cgpa-calculator',
   },
   {
     slug: 'percentage-calculator',
     title: 'Percentage Calculator',
     description: 'Quickly compute percentages for marks and results.',
     icon: 'Percent',
+    href: 'https://calculy-mu.vercel.app/calculators/percentage-calculator',
   },
   {
     slug: 'fee-calculator',
     title: 'Fee Calculator',
     description: 'Calculate application fees based on category and number of posts.',
     icon: 'Wallet',
+    href: '/tools/fee-calculator',
   },
 ];
 
