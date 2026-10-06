@@ -485,7 +485,7 @@ export function JobDetailsView({ job, relatedJobs: relatedJobsProp = [] }: JobDe
                 <div className="space-y-4">
                   {Object.entries(
                     job.examPattern.subjects.reduce((groups, subject) => {
-                      const key = `${subject.stageNumber}::${subject.stageName}::${subject.paperNumber}::${subject.paperName}::${subject.sectionName ?? ''}::${subject.postName ?? ''}`;
+                      const key = `${subject.stageNumber}::${subject.stageName}::${subject.paperNumber}::${subject.paperName}::${subject.sessionNumber ?? ''}::${subject.sessionName ?? ''}::${subject.sectionName ?? ''}::${subject.moduleNumber ?? ''}::${subject.moduleName ?? ''}::${subject.postName ?? ''}`;
                       (groups[key] ??= []).push(subject);
                       return groups;
                     }, {} as Record<string, typeof job.examPattern.subjects>)
@@ -500,9 +500,17 @@ export function JobDetailsView({ job, relatedJobs: relatedJobsProp = [] }: JobDe
                             <span className="font-semibold">{first.stageName}</span>
                             <span className="text-muted-foreground">•</span>
                             <span className="font-medium">{first.paperName}</span>
+                            {first.sessionName && <>
+                              <span className="text-muted-foreground">•</span>
+                              <span className="text-sm text-muted-foreground">{first.sessionName}</span>
+                            </>}
                             {first.sectionName && <>
                               <span className="text-muted-foreground">•</span>
                               <span className="text-sm text-muted-foreground">Section: {first.sectionName}</span>
+                            </>}
+                            {first.moduleName && <>
+                              <span className="text-muted-foreground">•</span>
+                              <span className="text-sm text-muted-foreground">Module: {first.moduleName}</span>
                             </>}
                             {first.postName && (
                               <>
@@ -519,6 +527,7 @@ export function JobDetailsView({ job, relatedJobs: relatedJobsProp = [] }: JobDe
                                 <th className="px-3 py-2 text-left font-semibold">Subject</th>
                                 <th className="px-3 py-2 text-center font-semibold">Questions</th>
                                 <th className="px-3 py-2 text-center font-semibold">Marks</th>
+                                <th className="px-3 py-2 text-center font-semibold">Weightage</th>
                               </tr>
                             </thead>
                             <tbody className="divide-y">
@@ -527,6 +536,7 @@ export function JobDetailsView({ job, relatedJobs: relatedJobsProp = [] }: JobDe
                                   <td className="px-3 py-2.5 font-medium">{s.subject}</td>
                                   <td className="px-3 py-2.5 text-center">{s.questions}</td>
                                   <td className="px-3 py-2.5 text-center">{s.marks}</td>
+                                  <td className="px-3 py-2.5 text-center">{s.isQualifying ? 'Qualifying' : (s.weightage ?? '—')}</td>
                                 </tr>
                               ))}
                             </tbody>
@@ -535,6 +545,7 @@ export function JobDetailsView({ job, relatedJobs: relatedJobsProp = [] }: JobDe
                                 <td className="px-3 py-2.5">Total</td>
                                 <td className="px-3 py-2.5 text-center">{questions}</td>
                                 <td className="px-3 py-2.5 text-center">{marks}</td>
+                                <td className="px-3 py-2.5 text-center">—</td>
                               </tr>
                             </tfoot>
                           </table>
