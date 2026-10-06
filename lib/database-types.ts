@@ -168,6 +168,13 @@ export interface ExamPatternSubject {
   paper_number: number;
   paper_name: string;
   post_id: string | null;
+  section_name: string | null;
+  session_name: string | null;
+  session_number: number | null;
+  module_name: string | null;
+  module_number: number | null;
+  weightage: string | null;
+  is_qualifying: boolean;
   subject: string;
   questions: number | null;
   marks: number | null;
