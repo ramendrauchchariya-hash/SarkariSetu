@@ -922,6 +922,7 @@ export function JobEditorClient(props: Props) {
                     }}>
                       <SelectTrigger className="h-9 w-[200px]"><SelectValue /></SelectTrigger>
                       <SelectContent>
+                        <SelectItem value="-1">All Posts</SelectItem>
                         {form.posts.map((p, idx) => <SelectItem key={idx} value={String(idx)}>{p.title || `Post ${idx + 1}`}</SelectItem>)}
                       </SelectContent>
                     </Select>
@@ -949,6 +950,7 @@ export function JobEditorClient(props: Props) {
                     }}>
                       <SelectTrigger className="h-9 w-[100px]"><SelectValue /></SelectTrigger>
                       <SelectContent>
+                        <SelectItem value="All Categories">All Categories</SelectItem>
                         {vacancyCategoryOptions.map((c) => <SelectItem key={c} value={c}>{c}</SelectItem>)}
                       </SelectContent>
                     </Select>
