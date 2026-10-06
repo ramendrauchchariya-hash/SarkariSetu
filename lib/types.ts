@@ -47,6 +47,7 @@ export interface ExamPatternSubject {
   stageName: string;
   paperNumber: number;
   paperName: string;
+  sectionName: string | null;
   postName: string | null;
   subject: string;
   questions: number;
