@@ -78,27 +78,24 @@ export function JobsPageClient({ jobs, total, totalPages, currentPage }: JobsPag
   );
 
   const toggleFilter = useCallback((group: keyof JobFilterState, value: string) => {
-    setFilters((prev) => {
-      const current = prev[group];
-      const updated = current.includes(value)
-        ? current.filter((v) => v !== value)
-        : [...current, value];
-      const next = { ...prev, [group]: updated };
-      navigateWithState(next, search, sort, 1);
-      return next;
-    });
-  }, [navigateWithState, search, sort]);
+    const current = filters[group];
+    const updated = current.includes(value)
+      ? current.filter((v) => v !== value)
+      : [...current, value];
+    const next = { ...filters, [group]: updated };
+    setFilters(next);
+    navigateWithState(next, search, sort, 1);
+  }, [filters, navigateWithState, search, sort]);
 
   const removeFilter = useCallback((group: string, value: string) => {
-    setFilters((prev) => {
-      const next = {
-        ...prev,
-        [group]: prev[group as keyof JobFilterState].filter((v) => v !== value),
-      };
-      navigateWithState(next, search, sort, 1);
-      return next;
-    });
-  }, [navigateWithState, search, sort]);
+    const key = group as keyof JobFilterState;
+    const next = {
+      ...filters,
+      [key]: filters[key].filter((v) => v !== value),
+    };
+    setFilters(next);
+    navigateWithState(next, search, sort, 1);
+  }, [filters, navigateWithState, search, sort]);
 
   const clearAllFilters = useCallback(() => {
     setFilters(EMPTY_FILTERS);
@@ -107,10 +104,11 @@ export function JobsPageClient({ jobs, total, totalPages, currentPage }: JobsPag
   }, [navigateWithState, sort]);
 
   const handlePageChange = (page: number) => {
-    const params = filtersToSearchParams(filters, search, sort, page);
+    const safePage = Math.max(1, Math.min(page, totalPages || 1));
+    const params = filtersToSearchParams(filters, search, sort, safePage);
     const queryString = params.toString();
-    const newUrl = queryString ? `${pathname}?${queryString}` : pathname;
-    router.push(newUrl);
+    const newUrl = queryString ? pathname + '?' + queryString : pathname;
+    router.push(newUrl, { scroll: false });
     if (typeof window !== 'undefined') {
       window.scrollTo({ top: 0, behavior: 'smooth' });
     }
@@ -240,8 +238,7 @@ export function JobsPageClient({ jobs, total, totalPages, currentPage }: JobsPag
                   value={sort}
                   onChange={(v) => {
                     setSort(v);
-                    const params = filtersToSearchParams(filters, search, v, currentPage);
-                    router.replace(`${pathname}?${params.toString()}`);
+                    navigateWithState(filters, search, v, 1);
                   }}
                 />
               </div>
