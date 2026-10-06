@@ -496,7 +496,13 @@ export function JobEditorClient(props: Props) {
           Save & Preview
         </Button>
         {props.mode === 'edit' && (
-          <Button size="sm" onClick={() => setShowPublishConfirm(true)} disabled={isPending} className="gap-2">
+          <Button
+            size="sm"
+            onClick={() => setShowPublishConfirm(true)}
+            disabled={isPending || form.verification_status === 'unverified'}
+            className="gap-2"
+            title={form.verification_status === 'unverified' ? 'Set Verification Status to Pending Review or Verified before publishing' : undefined}
+          >
             <Send className="h-4 w-4" />
             Publish
           </Button>
@@ -705,7 +711,7 @@ export function JobEditorClient(props: Props) {
                 </Select>
                 <p className="flex items-start gap-1 text-xs text-muted-foreground">
                   <Info className="mt-0.5 h-3 w-3 shrink-0" />
-                  You must explicitly set this to "Verified" — it is never set automatically.
+                  Publishing requires at least "Pending Review". Use "Verified" only after the official source has been checked.
                 </p>
               </div>
               <div className="rounded-md border border-info/30 bg-info/5 p-3 text-sm">
