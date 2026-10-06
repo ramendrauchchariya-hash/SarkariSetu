@@ -485,7 +485,7 @@ export function JobDetailsView({ job, relatedJobs: relatedJobsProp = [] }: JobDe
                 <div className="space-y-4">
                   {Object.entries(
                     job.examPattern.subjects.reduce((groups, subject) => {
-                      const key = `${subject.stageNumber}::${subject.stageName}::${subject.paperNumber}::${subject.paperName}::${subject.postName ?? ''}`;
+                      const key = `${subject.stageNumber}::${subject.stageName}::${subject.paperNumber}::${subject.paperName}::${subject.sectionName ?? ''}::${subject.postName ?? ''}`;
                       (groups[key] ??= []).push(subject);
                       return groups;
                     }, {} as Record<string, typeof job.examPattern.subjects>)
@@ -500,6 +500,10 @@ export function JobDetailsView({ job, relatedJobs: relatedJobsProp = [] }: JobDe
                             <span className="font-semibold">{first.stageName}</span>
                             <span className="text-muted-foreground">•</span>
                             <span className="font-medium">{first.paperName}</span>
+                            {first.sectionName && <>
+                              <span className="text-muted-foreground">•</span>
+                              <span className="text-sm text-muted-foreground">Section: {first.sectionName}</span>
+                            </>}
                             {first.postName && (
                               <>
                                 <span className="text-muted-foreground">•</span>
