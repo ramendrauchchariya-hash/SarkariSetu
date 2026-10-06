@@ -787,7 +787,9 @@ async function saveChildRecords(recruitmentId: string, data: JobFormData): Promi
       stage_name: e.stage_name || `Tier ${e.stage_number || 1}`,
       paper_number: e.paper_number || 1,
       paper_name: e.paper_name || `Paper ${e.paper_number || 1}`,
-      post_id: e.post_id || null,
+      post_id: e.post_id?.startsWith('post-')
+        ? (postIdMap[parseInt(e.post_id.slice(5), 10)] ?? null)
+        : (e.post_id || null),
       subject: e.subject,
       questions: e.questions ? parseInt(e.questions, 10) : null,
       marks: e.marks ? parseInt(e.marks, 10) : null,
