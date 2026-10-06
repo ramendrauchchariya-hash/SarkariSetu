@@ -60,149 +60,148 @@ function toRecruitmentWithOrg(r: DbRecruitment): RecruitmentWithOrg {
   };
 }
 
-function slugifyDepartment(value: string): string {
-  return value
-    .trim()
+function normalizeText(value: string | null | undefined): string {
+  return (value ?? '')
+    .normalize('NFKD')
     .toLowerCase()
     .replace(/&/g, ' and ')
-    .replace(/[^a-z0-9]+/g, '-')
-    .replace(/^-+|-+$/g, '');
+    .replace(/[^a-z0-9]+/g, ' ')
+    .replace(/\\s+/g, ' ')
+    .trim();
+}
+
+function slugifyDepartment(value: string): string {
+  return normalizeText(value).replace(/ /g, '-');
 }
 
 function normalizeQualification(value: string): string {
-  return value
-    .trim()
-    .toLowerCase()
-    .replace(/\./g, '')
-    .replace(/\s+/g, '-')
-    .replace(/[^a-z0-9-]+/g, '-')
-    .replace(/-+/g, '-')
-    .replace(/^-+|-+$/g, '');
+  return normalizeText(value);
 }
 
+const QUALIFICATION_ALIASES: Record<string, string[]> = {
+  '10th-pass': ['10th', '10th pass', 'matric', 'matriculation', 'high school'],
+  '12th-pass': ['12th', '12th pass', 'intermediate', 'higher secondary', 'senior secondary'],
+  iti: ['iti', 'industrial training institute'],
+  diploma: ['diploma', 'polytechnic'],
+  graduate: ['graduate', 'graduation', 'bachelor', 'bachelors', 'degree', 'graduated'],
+  'b-tech': ['b tech', 'btech', 'bachelor of technology'],
+  'b-e': ['b e', 'be', 'bachelor of engineering'],
+  'post-graduate': ['post graduate', 'postgraduate', 'master', 'masters', 'm tech', 'mtech', 'mba', 'mca', 'pg'],
+};
+
 function qualificationMatches(value: string | null, selected: string[]): boolean {
-  if (!value) return false;
   const normalized = normalizeQualification(value);
+  if (!normalized) return false;
+
   return selected.some((candidate) => {
     const wanted = normalizeQualification(candidate);
-    return normalized === wanted ||
-      (wanted === 'b-tech' && normalized === 'btech') ||
-      (wanted === 'b-e' && normalized === 'be') ||
-      (wanted === 'post-graduate' && normalized === 'postgraduate') ||
-      (wanted === '10th-pass' && normalized === '10th') ||
-      (wanted === '12th-pass' && normalized === '12th');
+    const aliases = QUALIFICATION_ALIASES[candidate] ?? [wanted];
+
+    if (wanted === 'graduate') {
+      // Graduate should not accidentally exclude ordinary bachelor's-degree wording.
+      return aliases.some((alias) => normalized.includes(alias)) && !normalized.includes('post graduate');
+    }
+
+    if (wanted === 'post-graduate') {
+      return aliases.some((alias) => normalized.includes(alias));
+    }
+
+    return aliases.some((alias) => normalized === alias || normalized.includes(alias));
   });
 }
 
 function departmentMatches(
   department: string | null,
   organization: { slug: string; name: string } | null,
+  categories: Array<{ name: string; slug: string }>,
   selected: string[]
 ): boolean {
-  const departmentSlug = department ? slugifyDepartment(department) : '';
-  const organizationSlug = organization?.slug?.toLowerCase() ?? '';
-  const organizationName = organization?.name ? slugifyDepartment(organization.name) : '';
+  const text = normalizeText([
+    department ?? '',
+    organization?.slug ?? '',
+    organization?.name ?? '',
+    ...categories.flatMap((c) => [c.name, c.slug]),
+  ].join(' '));
 
   return selected.some((candidate) => {
-    if (candidate === departmentSlug || candidate === organizationSlug) return true;
+    const wanted = normalizeText(candidate);
 
-    // Broad department filters should also include more specific live values.
-    if (candidate === 'banking' && (
-      departmentSlug.startsWith('banking-') ||
-      organizationSlug.includes('bank') ||
-      organizationName.includes('bank')
-    )) return true;
+    if (wanted === 'ssc') return text.includes('staff selection commission') || text.includes(' ssc ');
+    if (wanted === 'upsc') return text.includes('union public service commission') || text.includes(' upsc ');
+    if (wanted === 'banking') return /bank|banking|insurance|ibps|financial/.test(text);
+    if (wanted === 'railway') return /railway|railways|rrb|rpf/.test(text);
+    if (wanted === 'defence') return /defence|defense|armed forces|army|navy|air force|ssb|paramilitary/.test(text);
+    if (wanted === 'teaching') return /teaching|education|teacher|school|college|university|lecturer|professor/.test(text);
+    if (wanted === 'police') return /police|constable|sub inspector|si |paramilitary/.test(text);
+    if (wanted === 'psu') return /psu|public sector|undertaking/.test(text);
+    if (wanted === 'state government') return /state government|state govt|public service commission|psc/.test(text);
 
-    if (candidate === 'railway' && (
-      departmentSlug.startsWith('railway-') ||
-      organizationSlug.includes('railway') ||
-      organizationName.includes('railway')
-    )) return true;
-
-    if (candidate === 'defence' && (
-      departmentSlug.startsWith('defence-') ||
-      organizationSlug.includes('defence') ||
-      organizationName.includes('defence') ||
-      organizationName.includes('armed-forces')
-    )) return true;
-
-    if (candidate === 'teaching' && (
-      departmentSlug.startsWith('teaching-') ||
-      organizationSlug.includes('education') ||
-      organizationName.includes('education') ||
-      organizationName.includes('school')
-    )) return true;
-
-    if (candidate === 'police' && (
-      departmentSlug.startsWith('police-') ||
-      organizationSlug.includes('police') ||
-      organizationName.includes('police')
-    )) return true;
-
-    if (candidate === 'state-government' && (
-      departmentSlug.startsWith('state-government-') ||
-      departmentSlug.includes('state-government') ||
-      organizationSlug.includes('state-government')
-    )) return true;
-
-    if (candidate === 'psu' && departmentSlug.startsWith('psu-')) return true;
-
-    if (candidate === 'upsc' && (
-      organizationSlug === 'upsc' ||
-      organizationName.includes('union-public-service-commission')
-    )) return true;
-
-    if (candidate === 'ssc' && (
-      organizationSlug === 'ssc' ||
-      organizationName.includes('staff-selection-commission')
-    )) return true;
-
-    return false;
+    return text.includes(wanted);
   });
 }
-function escapeSearch(value: string): string {
-  return value.trim().toLowerCase();
+
+function searchMatches(
+  query: string,
+  recruitment: DbRecruitment,
+  aggregate: ReturnType<typeof getAggregate>
+): boolean {
+  const terms = normalizeText(query).split(' ').filter(Boolean);
+  if (!terms.length) return true;
+
+  const categoryText = recruitment.categories
+    .map((c) => `${c.name} ${c.slug}`)
+    .join(' ');
+  const postText = aggregate.posts
+    .map((p) => `${p.title} ${p.qualification ?? ''} ${p.discipline ?? ''} ${p.vacancies?.map((v) => v.category_name ?? '').join(' ') ?? ''}`)
+    .join(' ');
+
+  const haystack = normalizeText([
+    recruitment.title,
+    recruitment.description ?? '',
+    recruitment.department ?? '',
+    recruitment.organization?.name ?? '',
+    recruitment.organization?.short_name ?? '',
+    categoryText,
+    postText,
+  ].join(' '));
+
+  return terms.every((term) => haystack.includes(term));
 }
 
 function getAggregate(r: DbRecruitment) {
   const posts = r.posts ?? [];
   const vacancies = posts.flatMap((p) => p.vacancies ?? []);
-  const totalVacancies = vacancies.reduce((sum, v) => sum + (v.vacancy_count || 0), 0);
+  const totalVacancies = vacancies.reduce((sum, v) => sum + (Number(v.vacancy_count) || 0), 0);
 
-  const salaries = posts
-    .flatMap((p) => [p.salary_min, p.salary_max])
-    .filter((v): v is number => typeof v === 'number' && Number.isFinite(v));
+  const salaryPairs = posts
+    .map((p) => ({
+      min: typeof p.salary_min === 'number' && Number.isFinite(p.salary_min) ? p.salary_min : null,
+      max: typeof p.salary_max === 'number' && Number.isFinite(p.salary_max) ? p.salary_max : null,
+    }))
+    .filter((p) => p.min !== null || p.max !== null);
 
-  const salaryMin = posts
-    .map((p) => p.salary_min)
-    .filter((v): v is number => typeof v === 'number')
-    .reduce((min, v) => Math.min(min, v), salaries.length ? Math.min(...salaries) : 0);
-
-  const salaryMax = posts
-    .map((p) => p.salary_max)
-    .filter((v): v is number => typeof v === 'number')
-    .reduce((max, v) => Math.max(max, v), salaries.length ? Math.max(...salaries) : 0);
+  const salaryMin = salaryPairs.length
+    ? Math.min(...salaryPairs.map((p) => p.min ?? p.max ?? 0))
+    : 0;
+  const salaryMax = salaryPairs.length
+    ? Math.max(...salaryPairs.map((p) => p.max ?? p.min ?? 0))
+    : 0;
 
   const stateSlugs = new Set<string>();
   const stateNames = new Set<string>();
+
   vacancies.forEach((v) => {
     if (v.state?.slug) stateSlugs.add(v.state.slug);
     if (v.state?.name) stateNames.add(v.state.name);
   });
 
-  if (r.location_type === 'all-india' || stateSlugs.size === 0) {
+  // Only all-India recruitments get the all-india state filter.
+  if (r.location_type === 'all-india') {
     stateSlugs.add('all-india');
     stateNames.add('All India');
   }
 
-  return {
-    posts,
-    totalVacancies,
-    salaryMin,
-    salaryMax,
-    stateSlugs,
-    stateNames,
-  };
+  return { posts, totalVacancies, salaryMin, salaryMax, stateSlugs, stateNames };
 }
 
 export interface JobsQueryOptions {
@@ -245,12 +244,13 @@ export async function serverGetJobsListing(
     return { jobs: [], total: 0, totalPages: 0 };
   }
 
-  const q = escapeSearch(search ?? '');
+  const q = normalizeText(search ?? '');
   const salaryConfigs = salaryRanges.filter((r) => selectedSalaryRanges.includes(r.value));
 
   let rows = (data as unknown as DbRecruitment[]).map((raw) => {
     const recruitment = toRecruitmentWithOrg(raw);
     const aggregate = getAggregate(raw);
+
     const job = recruitmentWithVacanciesToJobPosting(
       recruitment,
       aggregate.totalVacancies,
@@ -273,44 +273,49 @@ export async function serverGetJobsListing(
   });
 
   rows = rows.filter(({ recruitment, job, aggregate }) => {
-    const categoryText = recruitment.categories.map((c) => `${c.name} ${c.slug}`).join(' ');
-    const postText = aggregate.posts
-      .map((p) => `${p.title} ${p.qualification ?? ''} ${p.discipline ?? ''}`)
-      .join(' ');
+    if (q && !searchMatches(q, recruitment, aggregate)) return false;
 
-    if (q) {
-      const haystack = [
-        recruitment.title,
-        recruitment.description ?? '',
-        recruitment.department ?? '',
-        recruitment.organization?.name ?? '',
-        categoryText,
-        postText,
-      ].join(' ').toLowerCase();
-
-      if (!haystack.includes(q)) return false;
+    if (
+      departments.length &&
+      !departmentMatches(
+        recruitment.department,
+        recruitment.organization,
+        recruitment.categories,
+        departments
+      )
+    ) {
+      return false;
     }
 
-    if (departments.length && !departmentMatches(recruitment.department, recruitment.organization, departments)) return false;
-    if (jobTypes.length && !jobTypes.includes(recruitment.job_type ?? '')) return false;
+    if (jobTypes.length) {
+      const recruitmentType = recruitment.job_type ?? '';
+      const postTypes = aggregate.posts.map((post) => post.job_type ?? '');
+      if (!jobTypes.some((type) => type === recruitmentType || postTypes.includes(type))) {
+        return false;
+      }
+    }
 
     if (qualifications.length) {
       const categoryMatches = recruitment.categories.some((category) =>
-        qualificationMatches(category.slug, qualifications)
+        qualificationMatches(`${category.name} ${category.slug}`, qualifications)
       );
       const postMatches = aggregate.posts.some((post) =>
         qualificationMatches(post.qualification, qualifications)
       );
+
       if (!categoryMatches && !postMatches) return false;
     }
 
-    if (states.length && !states.some((state) => aggregate.stateSlugs.has(state))) return false;
+    if (states.length && !states.some((state) => aggregate.stateSlugs.has(state))) {
+      return false;
+    }
 
     if (salaryConfigs.length) {
       const matches = salaryConfigs.some((range) => {
         const max = Number.isFinite(range.max) ? range.max : Number.MAX_SAFE_INTEGER;
         return aggregate.salaryMax >= range.min && aggregate.salaryMin <= max;
       });
+
       if (!matches) return false;
     }
 
@@ -323,21 +328,35 @@ export async function serverGetJobsListing(
   });
 
   rows.sort((a, b) => {
+    let result = 0;
+
     switch (sort) {
       case 'deadline-soonest':
-        return (a.job.applicationEnd || '9999-12-31').localeCompare(b.job.applicationEnd || '9999-12-31');
+        result = (a.job.applicationEnd || '9999-12-31').localeCompare(b.job.applicationEnd || '9999-12-31');
+        break;
       case 'deadline-latest':
-        return (b.job.applicationEnd || '').localeCompare(a.job.applicationEnd || '');
+        result = (b.job.applicationEnd || '').localeCompare(a.job.applicationEnd || '');
+        break;
       case 'most-vacancies':
-        return b.aggregate.totalVacancies - a.aggregate.totalVacancies;
+        result = b.aggregate.totalVacancies - a.aggregate.totalVacancies;
+        break;
       case 'org-az':
-        return a.job.organization.localeCompare(b.job.organization);
+        result = a.job.organization.localeCompare(b.job.organization);
+        break;
       case 'title-az':
-        return a.job.title.localeCompare(b.job.title);
+        result = a.job.title.localeCompare(b.job.title);
+        break;
       case 'latest':
       default:
-        return String(b.job.postedDate).localeCompare(String(a.job.postedDate));
+        result = String(b.job.postedDate || '').localeCompare(String(a.job.postedDate || ''));
+        break;
     }
+
+    // Stable tie-breakers are essential for correct pagination.
+    if (result !== 0) return result;
+    const titleTie = a.job.title.localeCompare(b.job.title);
+    if (titleTie !== 0) return titleTie;
+    return a.job.id.localeCompare(b.job.id);
   });
 
   const total = rows.length;
