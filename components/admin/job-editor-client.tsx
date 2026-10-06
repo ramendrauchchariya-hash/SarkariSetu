@@ -220,6 +220,12 @@ export function JobEditorClient(props: Props) {
           paper_name: e.paper_name as string ?? 'Paper 1',
           post_id: e.post_id as string ?? '',
           section_name: e.section_name as string ?? '',
+          session_name: e.session_name as string ?? '',
+          session_number: e.session_number as number ?? null,
+          module_name: e.module_name as string ?? '',
+          module_number: e.module_number as number ?? null,
+          weightage: e.weightage as string ?? '',
+          is_qualifying: Boolean(e.is_qualifying),
           subject: e.subject as string,
           questions: e.questions?.toString() ?? '',
           marks: e.marks?.toString() ?? '',
@@ -446,6 +452,12 @@ export function JobEditorClient(props: Props) {
         paper_name: seed?.paper_name ?? 'Paper 1',
         post_id: seed?.post_id ?? '',
         section_name: seed?.section_name ?? '',
+        session_name: seed?.session_name ?? '',
+        session_number: seed?.session_number ?? null,
+        module_name: seed?.module_name ?? '',
+        module_number: seed?.module_number ?? null,
+        weightage: seed?.weightage ?? '',
+        is_qualifying: seed?.is_qualifying ?? false,
         subject: '',
         questions: '',
         marks: '',
@@ -1146,7 +1158,15 @@ export function JobEditorClient(props: Props) {
                         }} />
                       </div>
                     </div>
-                    <div className="grid grid-cols-1 md:grid-cols-4 gap-2">
+                    <div className="grid grid-cols-1 md:grid-cols-6 gap-2">
+                      <div className="space-y-1">
+                        <Label className="text-xs">Session</Label>
+                        <Input value={e.session_name} onChange={(ev) => { const items=[...form.exam_patterns]; items[i]={...items[i],session_name:ev.target.value}; update('exam_patterns',items); }} placeholder="e.g., Session I" />
+                      </div>
+                      <div className="space-y-1">
+                        <Label className="text-xs">Session No.</Label>
+                        <Input type="number" min="1" value={e.session_number ?? ''} onChange={(ev) => { const items=[...form.exam_patterns]; items[i]={...items[i],session_number:ev.target.value ? Number(ev.target.value) : null}; update('exam_patterns',items); }} />
+                      </div>
                       <div className="space-y-1">
                         <Label className="text-xs">Section</Label>
                         <Input value={e.section_name} onChange={(ev) => {
@@ -1166,6 +1186,24 @@ export function JobEditorClient(props: Props) {
                             {form.posts.map((p, idx) => <SelectItem key={p.id || idx} value={p.id || `post-${idx}`}>{p.title || `Post ${idx + 1}`}</SelectItem>)}
                           </SelectContent>
                         </Select>
+                      </div>
+                      <div className="space-y-1">
+                        <Label className="text-xs">Module</Label>
+                        <Input value={e.module_name} onChange={(ev) => { const items=[...form.exam_patterns]; items[i]={...items[i],module_name:ev.target.value}; update('exam_patterns',items); }} placeholder="e.g., Module I" />
+                      </div>
+                      <div className="space-y-1">
+                        <Label className="text-xs">Module No.</Label>
+                        <Input type="number" min="1" value={e.module_number ?? ''} onChange={(ev) => { const items=[...form.exam_patterns]; items[i]={...items[i],module_number:ev.target.value ? Number(ev.target.value) : null}; update('exam_patterns',items); }} />
+                      </div>
+                      <div className="space-y-1">
+                        <Label className="text-xs">Weightage</Label>
+                        <Input value={e.weightage} onChange={(ev) => { const items=[...form.exam_patterns]; items[i]={...items[i],weightage:ev.target.value}; update('exam_patterns',items); }} placeholder="e.g., 23%" />
+                      </div>
+                      <div className="flex items-end gap-2 pb-1">
+                        <label className="flex items-center gap-2 text-xs cursor-pointer">
+                          <input type="checkbox" checked={e.is_qualifying} onChange={(ev) => { const items=[...form.exam_patterns]; items[i]={...items[i],is_qualifying:ev.target.checked}; update('exam_patterns',items); }} />
+                          Qualifying
+                        </label>
                       </div>
                       <div className="space-y-1 md:col-span-2">
                         <Label className="text-xs">Subject / Sub-section</Label>
