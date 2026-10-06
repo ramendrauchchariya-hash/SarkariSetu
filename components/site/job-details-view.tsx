@@ -536,9 +536,9 @@ export function JobDetailsView({ job, relatedJobs: relatedJobsProp = [] }: JobDe
                           </table>
                         </div>
                         <div className="grid grid-cols-1 gap-3 border-t px-4 py-3 text-sm sm:grid-cols-3">
-                          <div><span className="text-xs text-muted-foreground">Duration</span><p className="font-semibold">{job.examPattern.duration}</p></div>
-                          <div><span className="text-xs text-muted-foreground">Mode</span><p className="font-semibold">{job.examPattern.mode}</p></div>
-                          <div><span className="text-xs text-muted-foreground">Negative Marking</span><p className="font-semibold">{job.examPattern.negativeMarking ?? 'None'}</p></div>
+                          <div><span className="text-xs text-muted-foreground">Duration</span><p className="font-semibold">{first.duration}</p></div>
+                          <div><span className="text-xs text-muted-foreground">Mode</span><p className="font-semibold">{first.mode}</p></div>
+                          <div><span className="text-xs text-muted-foreground">Negative Marking</span><p className="font-semibold">{first.negativeMarking ?? 'None'}</p></div>
                         </div>
                       </InfoCard>
                     );
