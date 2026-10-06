@@ -702,14 +702,27 @@ async function saveChildRecords(recruitmentId: string, data: JobFormData): Promi
   // Vacancies (linked to posts by index)
   for (const v of data.vacancies) {
     if (!v.vacancy_count) continue;
-    const postId = postIdMap[v.post_index];
-    if (!postId) continue;
-    await supabaseAdmin.from('vacancies').insert({
-      post_id: postId,
-      state_id: v.state_id || null,
-      category_name: v.category_name,
-      vacancy_count: parseInt(v.vacancy_count, 10),
-    });
+
+    const vacancyCount = parseInt(v.vacancy_count, 10);
+    if (!Number.isFinite(vacancyCount) || vacancyCount < 0) continue;
+
+    // "All Posts" is a UI convenience option. The database requires a
+    // post_id, so create the same vacancy breakdown for every post.
+    const postIndexes = v.post_index === -1
+      ? postIdMap.map((_, index) => index)
+      : [v.post_index];
+
+    for (const postIndex of postIndexes) {
+      const postId = postIdMap[postIndex];
+      if (!postId) continue;
+
+      await supabaseAdmin.from('vacancies').insert({
+        post_id: postId,
+        state_id: v.state_id || null,
+        category_name: v.category_name || 'All Categories',
+        vacancy_count: vacancyCount,
+      });
+    }
   }
 
   // Important dates
