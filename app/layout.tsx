@@ -27,6 +27,9 @@ export const metadata: Metadata = {
   description:
     'Find government jobs, exams, results, admit cards and useful preparation tools in one simple platform built for Indian job seekers.',
   alternates: { canonical: siteUrl },
+  verification: {
+    google: 'HghnuaWl13tSkerNhyKd6l4iM0_sMwM5hWKtvc-oUwQ',
+  },
   keywords: ['government jobs','sarkari naukri','government exams','admit card','results','admissions','India jobs','SarkariSetu'],
   authors: [{ name: 'SarkariSetu' }],
   creator: 'SarkariSetu',
@@ -62,6 +65,9 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   };
   return (
     <html lang="en" suppressHydrationWarning>
+      <head>
+        <meta name="google-adsense-account" content="ca-pub-9248723520054459" />
+      </head>
       <body className={`${inter.variable} ${poppins.variable} font-sans`}>
         <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(organizationSchema) }} />
         <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(websiteSchema) }} />
