@@ -51,6 +51,9 @@ export interface ExamPatternSubject {
   subject: string;
   questions: number;
   marks: number;
+  duration: string;
+  negativeMarking: string | null;
+  mode: string;
 }
 export interface ExamPattern {
   subjects: ExamPatternSubject[];
