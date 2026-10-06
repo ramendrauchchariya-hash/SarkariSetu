@@ -15,7 +15,7 @@ export function ToolCard({ tool, className }: ToolCardProps) {
     Icons.Wrench) as Icons.LucideIcon;
 
   return (
-    <Link href={`/tools/${tool.slug}`} className="block">
+    <Link href={tool.href ?? `/tools/${tool.slug}`} className="block" target={tool.href?.startsWith('http') ? '_blank' : undefined} rel={tool.href?.startsWith('http') ? 'noreferrer' : undefined}>
       <Card
         className={cn(
           'group h-full p-5 transition-all hover:-translate-y-0.5 hover:shadow-card-hover',
