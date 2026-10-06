@@ -103,6 +103,11 @@ export interface SelectionStepFormItem {
 
 export interface ExamPatternFormItem {
   id?: string;
+  stage_number: number;
+  stage_name: string;
+  paper_number: number;
+  paper_name: string;
+  post_id: string;
   subject: string;
   questions: string;
   marks: string;
@@ -778,6 +783,11 @@ async function saveChildRecords(recruitmentId: string, data: JobFormData): Promi
     if (!e.subject?.trim()) continue;
     await supabaseAdmin.from('exam_patterns').insert({
       recruitment_id: recruitmentId,
+      stage_number: e.stage_number || 1,
+      stage_name: e.stage_name || `Tier ${e.stage_number || 1}`,
+      paper_number: e.paper_number || 1,
+      paper_name: e.paper_name || `Paper ${e.paper_number || 1}`,
+      post_id: e.post_id || null,
       subject: e.subject,
       questions: e.questions ? parseInt(e.questions, 10) : null,
       marks: e.marks ? parseInt(e.marks, 10) : null,
