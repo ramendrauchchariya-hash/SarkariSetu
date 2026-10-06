@@ -109,6 +109,12 @@ export interface ExamPatternFormItem {
   paper_name: string;
   post_id: string;
   section_name: string;
+  session_name: string;
+  session_number: number | null;
+  module_name: string;
+  module_number: number | null;
+  weightage: string;
+  is_qualifying: boolean;
   subject: string;
   questions: string;
   marks: string;
@@ -789,6 +795,12 @@ async function saveChildRecords(recruitmentId: string, data: JobFormData): Promi
       paper_number: e.paper_number || 1,
       paper_name: e.paper_name || `Paper ${e.paper_number || 1}`,
       section_name: e.section_name || null,
+      session_name: e.session_name || null,
+      session_number: e.session_number || null,
+      module_name: e.module_name || null,
+      module_number: e.module_number || null,
+      weightage: e.weightage || null,
+      is_qualifying: Boolean(e.is_qualifying),
       post_id: e.post_id?.startsWith('post-')
         ? (postIdMap[parseInt(e.post_id.slice(5), 10)] ?? null)
         : (e.post_id || null),
