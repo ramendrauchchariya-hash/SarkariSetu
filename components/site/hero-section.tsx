@@ -79,10 +79,10 @@ export function HeroSection({ latestJobs, stats }: HeroSectionProps) {
             </div>
           </div>
 
-          <div className="rounded-2xl border bg-card p-4 shadow-sm sm:p-5">
-            <div className="flex items-center justify-between px-1">
+          <div className="min-w-0 rounded-2xl border bg-card p-3 shadow-sm sm:p-5">
+            <div className="flex min-w-0 items-center justify-between gap-3 px-1">
               <span className="font-semibold text-muted-foreground">Latest Published</span>
-              <span className="text-xs text-muted-foreground">Live database</span>
+              <span className="hidden shrink-0 text-xs text-muted-foreground sm:block">Live database</span>
             </div>
 
             {latestJobs.length > 0 ? (
@@ -91,20 +91,34 @@ export function HeroSection({ latestJobs, stats }: HeroSectionProps) {
                   <a
                     key={job.id}
                     href={`/jobs/${job.id}`}
-                    className="flex items-center gap-3 rounded-xl border bg-background p-3 transition-colors hover:border-primary/30"
+                    className="flex min-w-0 items-center gap-2.5 rounded-xl border bg-background p-2.5 transition-colors hover:border-primary/30 sm:gap-3 sm:p-3"
                   >
-                    <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-primary/10 text-primary">
-                      <FileCheck2 className="h-5 w-5" />
+                    <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-primary/10 text-primary sm:h-10 sm:w-10">
+                      <FileCheck2 className="h-4 w-4 sm:h-5 sm:w-5" />
                     </span>
-                    <span className="min-w-0 flex-1">
-                      <span className="block truncate text-sm font-semibold">{job.title}</span>
-                      <span className="block truncate text-xs text-muted-foreground">{job.organization}</span>
+
+                    <span className="min-w-0 flex-1 overflow-hidden">
+                      <span className="block line-clamp-2 text-[13px] font-semibold leading-snug sm:truncate sm:text-sm">
+                        {job.title}
+                      </span>
+                      <span className="mt-0.5 block truncate text-[11px] leading-tight text-muted-foreground sm:text-xs">
+                        {job.organization}
+                      </span>
                     </span>
-                    <span className="shrink-0 text-xs font-semibold text-primary">{statusLabel(job.status)}</span>
+
+                    <span className="hidden shrink-0 rounded-full bg-primary/10 px-2 py-1 text-[11px] font-semibold text-primary sm:block">
+                      {statusLabel(job.status)}
+                    </span>
+                    <ArrowUpRight className="h-4 w-4 shrink-0 text-muted-foreground sm:hidden" aria-hidden="true" />
                   </a>
                 ))}
-                <a href="/jobs" className="flex items-center justify-center gap-2 rounded-xl bg-primary/5 py-3 text-sm font-semibold text-primary hover:bg-primary/10">
-                  Explore all opportunities <ArrowUpRight className="h-4 w-4" />
+
+                <a
+                  href="/jobs"
+                  className="flex min-w-0 items-center justify-center gap-1.5 rounded-xl bg-primary/5 px-3 py-3 text-sm font-semibold text-primary hover:bg-primary/10"
+                >
+                  <span className="truncate">Explore all opportunities</span>
+                  <ArrowUpRight className="h-4 w-4 shrink-0" />
                 </a>
               </div>
             ) : (
