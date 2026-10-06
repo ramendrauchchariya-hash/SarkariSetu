@@ -151,8 +151,6 @@ function searchMatches(
   if (!terms.length) return true;
 
   const categoryText = (recruitment.categories ?? [])
-    .map((c) => c.category)
-    .filter((c): c is { id: string; name: string; slug: string } => Boolean(c))
     .map((c) => `${c.name} ${c.slug}`)
     .join(' ');
   const postText = aggregate.posts
@@ -284,9 +282,7 @@ export async function serverGetJobsListing(
       !departmentMatches(
         recruitment.department,
         recruitment.organization,
-        (recruitment.categories ?? [])
-          .map((c) => c.category)
-          .filter((c): c is { id: string; name: string; slug: string } => Boolean(c)),
+        recruitment.categories ?? [],
         departments
       )
     ) {
