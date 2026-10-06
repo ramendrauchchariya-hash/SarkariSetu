@@ -482,52 +482,70 @@ export function JobDetailsView({ job, relatedJobs: relatedJobsProp = [] }: JobDe
             {/* Exam pattern */}
             {job.examPattern && (
               <DetailSection title="Exam Pattern" id="exam-pattern">
-                <InfoCard className="space-y-4">
-                  <div className="overflow-x-auto">
-                    <table className="w-full text-sm">
-                      <thead>
-                        <tr className="border-b bg-muted/30">
-                          <th className="px-3 py-2 text-left font-semibold">Subject</th>
-                          <th className="px-3 py-2 text-center font-semibold">Questions</th>
-                          <th className="px-3 py-2 text-center font-semibold">Marks</th>
-                        </tr>
-                      </thead>
-                      <tbody className="divide-y">
-                        {job.examPattern.subjects.map((s, i) => (
-                          <tr key={i}>
-                            <td className="px-3 py-2.5 font-medium">{s.subject}</td>
-                            <td className="px-3 py-2.5 text-center">{s.questions}</td>
-                            <td className="px-3 py-2.5 text-center">{s.marks}</td>
-                          </tr>
-                        ))}
-                      </tbody>
-                      <tfoot>
-                        <tr className="border-t-2 bg-muted/30 font-bold">
-                          <td className="px-3 py-2.5">Total</td>
-                          <td className="px-3 py-2.5 text-center">{job.examPattern.totalQuestions}</td>
-                          <td className="px-3 py-2.5 text-center">{job.examPattern.totalMarks}</td>
-                        </tr>
-                      </tfoot>
-                    </table>
-                  </div>
-                  <div className="grid grid-cols-1 gap-3 border-t pt-3 text-sm sm:grid-cols-3">
-                    <div>
-                      <span className="text-xs text-muted-foreground">Duration</span>
-                      <p className="font-semibold">{job.examPattern.duration}</p>
-                    </div>
-                    <div>
-                      <span className="text-xs text-muted-foreground">Mode</span>
-                      <p className="font-semibold">{job.examPattern.mode}</p>
-                    </div>
-                    <div>
-                      <span className="text-xs text-muted-foreground">Negative Marking</span>
-                      <p className="font-semibold">{job.examPattern.negativeMarking ?? 'None'}</p>
-                    </div>
-                  </div>
-                </InfoCard>
+                <div className="space-y-4">
+                  {Object.entries(
+                    job.examPattern.subjects.reduce((groups, subject) => {
+                      const key = `${subject.stageNumber}::${subject.stageName}::${subject.paperNumber}::${subject.paperName}::${subject.postName ?? ''}`;
+                      (groups[key] ??= []).push(subject);
+                      return groups;
+                    }, {} as Record<string, typeof job.examPattern.subjects>)
+                  ).map(([key, subjects]) => {
+                    const first = subjects[0];
+                    const questions = subjects.reduce((sum, s) => sum + s.questions, 0);
+                    const marks = subjects.reduce((sum, s) => sum + s.marks, 0);
+                    return (
+                      <InfoCard key={key} className="overflow-hidden">
+                        <div className="border-b bg-muted/20 px-4 py-3">
+                          <div className="flex flex-wrap items-center gap-2">
+                            <span className="font-semibold">{first.stageName}</span>
+                            <span className="text-muted-foreground">•</span>
+                            <span className="font-medium">{first.paperName}</span>
+                            {first.postName && (
+                              <>
+                                <span className="text-muted-foreground">•</span>
+                                <span className="text-sm text-muted-foreground">Post: {first.postName}</span>
+                              </>
+                            )}
+                          </div>
+                        </div>
+                        <div className="overflow-x-auto">
+                          <table className="w-full text-sm">
+                            <thead>
+                              <tr className="border-b bg-muted/30">
+                                <th className="px-3 py-2 text-left font-semibold">Subject</th>
+                                <th className="px-3 py-2 text-center font-semibold">Questions</th>
+                                <th className="px-3 py-2 text-center font-semibold">Marks</th>
+                              </tr>
+                            </thead>
+                            <tbody className="divide-y">
+                              {subjects.map((s, i) => (
+                                <tr key={i}>
+                                  <td className="px-3 py-2.5 font-medium">{s.subject}</td>
+                                  <td className="px-3 py-2.5 text-center">{s.questions}</td>
+                                  <td className="px-3 py-2.5 text-center">{s.marks}</td>
+                                </tr>
+                              ))}
+                            </tbody>
+                            <tfoot>
+                              <tr className="border-t-2 bg-muted/30 font-bold">
+                                <td className="px-3 py-2.5">Total</td>
+                                <td className="px-3 py-2.5 text-center">{questions}</td>
+                                <td className="px-3 py-2.5 text-center">{marks}</td>
+                              </tr>
+                            </tfoot>
+                          </table>
+                        </div>
+                        <div className="grid grid-cols-1 gap-3 border-t px-4 py-3 text-sm sm:grid-cols-3">
+                          <div><span className="text-xs text-muted-foreground">Duration</span><p className="font-semibold">{job.examPattern.duration}</p></div>
+                          <div><span className="text-xs text-muted-foreground">Mode</span><p className="font-semibold">{job.examPattern.mode}</p></div>
+                          <div><span className="text-xs text-muted-foreground">Negative Marking</span><p className="font-semibold">{job.examPattern.negativeMarking ?? 'None'}</p></div>
+                        </div>
+                      </InfoCard>
+                    );
+                  })}
+                </div>
               </DetailSection>
             )}
-
             {/* Documents required */}
             <DetailSection title="Documents Required" id="documents">
               <InfoCard>
