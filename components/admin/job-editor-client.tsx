@@ -219,6 +219,7 @@ export function JobEditorClient(props: Props) {
           paper_number: e.paper_number as number ?? 1,
           paper_name: e.paper_name as string ?? 'Paper 1',
           post_id: e.post_id as string ?? '',
+          section_name: e.section_name as string ?? '',
           subject: e.subject as string,
           questions: e.questions?.toString() ?? '',
           marks: e.marks?.toString() ?? '',
@@ -435,12 +436,22 @@ export function JobEditorClient(props: Props) {
     }));
   };
 
-  const addExamPattern = () => {
+  const addExamPattern = (seed?: Partial<ExamPatternFormItem>) => {
     setForm((prev) => ({
       ...prev,
       exam_patterns: [...prev.exam_patterns, {
-        stage_number: 1, stage_name: 'Tier 1', paper_number: 1, paper_name: 'Paper 1', post_id: '',
-        subject: '', questions: '', marks: '', duration_minutes: '', negative_marking: '', mode: '',
+        stage_number: seed?.stage_number ?? 1,
+        stage_name: seed?.stage_name ?? 'Tier 1',
+        paper_number: seed?.paper_number ?? 1,
+        paper_name: seed?.paper_name ?? 'Paper 1',
+        post_id: seed?.post_id ?? '',
+        section_name: seed?.section_name ?? '',
+        subject: '',
+        questions: '',
+        marks: '',
+        duration_minutes: '',
+        negative_marking: '',
+        mode: '',
       }],
     }));
   };
@@ -1078,9 +1089,28 @@ export function JobEditorClient(props: Props) {
                     <CardTitle className="text-base">Exam Pattern</CardTitle>
                     <p className="text-xs text-muted-foreground mt-1">Supports multiple tiers, papers, and post-specific patterns.</p>
                   </div>
-                  <Button type="button" variant="outline" size="sm" onClick={addExamPattern} className="gap-1">
-                    <Plus className="h-3 w-3" /> Add Paper / Subject
-                  </Button>
+                  <div className="flex flex-wrap gap-2">
+                    <Button type="button" variant="outline" size="sm" onClick={() => addExamPattern()} className="gap-1">
+                      <Plus className="h-3 w-3" /> Add Section / Subject
+                    </Button>
+                    <Button type="button" variant="outline" size="sm" onClick={() => {
+                      const nextStage = Math.max(0, ...form.exam_patterns.map((x) => x.stage_number)) + 1;
+                      addExamPattern({ stage_number: nextStage, stage_name: `Tier ${nextStage}`, paper_number: 1, paper_name: 'Paper 1' });
+                    }} className="gap-1">
+                      <Plus className="h-3 w-3" /> Add Tier / Stage
+                    </Button>
+                    <Button type="button" variant="outline" size="sm" onClick={() => {
+                      const stage = form.exam_patterns[form.exam_patterns.length - 1];
+                      addExamPattern({
+                        stage_number: stage?.stage_number ?? 1,
+                        stage_name: stage?.stage_name ?? 'Tier 1',
+                        paper_number: (stage?.paper_number ?? 0) + 1,
+                        paper_name: `Paper ${(stage?.paper_number ?? 0) + 1}`,
+                      });
+                    }} className="gap-1">
+                      <Plus className="h-3 w-3" /> Add Paper
+                    </Button>
+                  </div>
                 </div>
               </CardHeader>
               <CardContent className="space-y-3">
@@ -1116,7 +1146,14 @@ export function JobEditorClient(props: Props) {
                         }} />
                       </div>
                     </div>
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-2">
+                    <div className="grid grid-cols-1 md:grid-cols-4 gap-2">
+                      <div className="space-y-1">
+                        <Label className="text-xs">Section</Label>
+                        <Input value={e.section_name} onChange={(ev) => {
+                          const items = [...form.exam_patterns]; items[i] = { ...items[i], section_name: ev.target.value };
+                          update('exam_patterns', items);
+                        }} placeholder="e.g., General Intelligence" />
+                      </div>
                       <div className="space-y-1">
                         <Label className="text-xs">Post Specific (optional)</Label>
                         <Select value={e.post_id || 'all'} onValueChange={(val) => {
@@ -1131,7 +1168,7 @@ export function JobEditorClient(props: Props) {
                         </Select>
                       </div>
                       <div className="space-y-1 md:col-span-2">
-                        <Label className="text-xs">Subject</Label>
+                        <Label className="text-xs">Subject / Sub-section</Label>
                         <Input value={e.subject} onChange={(ev) => {
                           const items = [...form.exam_patterns]; items[i] = { ...items[i], subject: ev.target.value };
                           update('exam_patterns', items);
