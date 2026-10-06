@@ -47,9 +47,11 @@ export function AdmitCardCard({ admitCard, className }: AdmitCardCardProps) {
       <div className="flex shrink-0 flex-col items-end gap-2">
         <StatusBadge status={admitCard.status} />
         {admitCard.downloadAvailable ? (
-          <Button size="sm" variant="outline" className="h-7 gap-1 px-2 text-xs">
-            <Download className="h-3 w-3" />
-            View
+          <Button asChild size="sm" variant="outline" className="h-7 gap-1 px-2 text-xs">
+            <Link href={admitCard.officialUrl || `/admit-cards/${admitCard.id}`}>
+              <Download className="h-3 w-3" />
+              View
+            </Link>
           </Button>
         ) : (
           <ChevronRight className="h-4 w-4 text-muted-foreground" />
