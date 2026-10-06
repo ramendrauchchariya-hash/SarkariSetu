@@ -148,7 +148,7 @@ function searchMatches(
   const terms = normalizeText(query).split(' ').filter(Boolean);
   if (!terms.length) return true;
 
-  const categoryText = recruitment.categories
+  const categoryText = (recruitment.categories ?? [])
     .map((c) => `${c.name} ${c.slug}`)
     .join(' ');
   const postText = aggregate.posts
