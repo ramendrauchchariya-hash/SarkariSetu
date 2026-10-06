@@ -172,11 +172,23 @@ export function recruitmentDetailToJobDetails(r: RecruitmentDetail): JobDetails 
     .sort((a: SelectionProcessStep, b: SelectionProcessStep) => a.step_number - b.step_number)
     .map((s: SelectionProcessStep) => s.title);
 
-  const examPatternSubjects: UIExamPatternSubject[] = r.exam_patterns.map((e: ExamPatternSubject) => ({
-    subject: e.subject,
-    questions: e.questions ?? 0,
-    marks: e.marks ?? 0,
-  }));
+  const examPatternSubjects: UIExamPatternSubject[] = r.exam_patterns
+    .slice()
+    .sort((a: ExamPatternSubject, b: ExamPatternSubject) =>
+      (a.stage_number - b.stage_number) ||
+      (a.paper_number - b.paper_number) ||
+      a.subject.localeCompare(b.subject)
+    )
+    .map((e: ExamPatternSubject) => ({
+      stageNumber: e.stage_number ?? 1,
+      stageName: e.stage_name ?? `Tier ${e.stage_number ?? 1}`,
+      paperNumber: e.paper_number ?? 1,
+      paperName: e.paper_name ?? `Paper ${e.paper_number ?? 1}`,
+      postName: e.post_id ? (posts.find((p) => p.id === e.post_id)?.title ?? null) : null,
+      subject: e.subject,
+      questions: e.questions ?? 0,
+      marks: e.marks ?? 0,
+    }));
 
   const examPattern: ExamPattern | null = examPatternSubjects.length > 0 ? {
     subjects: examPatternSubjects,
