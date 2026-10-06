@@ -184,6 +184,7 @@ export function recruitmentDetailToJobDetails(r: RecruitmentDetail): JobDetails 
       stageName: e.stage_name ?? `Tier ${e.stage_number ?? 1}`,
       paperNumber: e.paper_number ?? 1,
       paperName: e.paper_name ?? `Paper ${e.paper_number ?? 1}`,
+      sectionName: e.section_name ?? null,
       postName: e.post_id ? (posts.find((p) => p.id === e.post_id)?.title ?? null) : null,
       subject: e.subject,
       questions: e.questions ?? 0,
