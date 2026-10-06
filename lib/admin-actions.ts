@@ -108,6 +108,7 @@ export interface ExamPatternFormItem {
   paper_number: number;
   paper_name: string;
   post_id: string;
+  section_name: string;
   subject: string;
   questions: string;
   marks: string;
@@ -787,6 +788,7 @@ async function saveChildRecords(recruitmentId: string, data: JobFormData): Promi
       stage_name: e.stage_name || `Tier ${e.stage_number || 1}`,
       paper_number: e.paper_number || 1,
       paper_name: e.paper_name || `Paper ${e.paper_number || 1}`,
+      section_name: e.section_name || null,
       post_id: e.post_id?.startsWith('post-')
         ? (postIdMap[parseInt(e.post_id.slice(5), 10)] ?? null)
         : (e.post_id || null),
