@@ -313,7 +313,8 @@ export async function serverGetJobsListing(
     if (salaryConfigs.length) {
       const matches = salaryConfigs.some((range) => {
         const max = Number.isFinite(range.max) ? range.max : Number.MAX_SAFE_INTEGER;
-        return aggregate.salaryMax >= range.min && aggregate.salaryMin <= max;
+        const startingSalary = aggregate.salaryMin || aggregate.salaryMax;
+        return startingSalary >= range.min && startingSalary <= max;
       });
 
       if (!matches) return false;
