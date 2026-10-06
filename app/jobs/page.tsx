@@ -58,13 +58,15 @@ export default async function JobsPage({ searchParams }: PageProps) {
     sort,
   });
 
+  const safeCurrentPage = Math.min(Math.max(page, 1), Math.max(totalPages, 1));
+
   return (
     <SiteShell>
       <JobsPageClient
         jobs={jobs}
         total={total}
         totalPages={totalPages}
-        currentPage={page}
+        currentPage={safeCurrentPage}
       />
     </SiteShell>
   );
