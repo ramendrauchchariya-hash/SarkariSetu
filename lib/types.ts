@@ -48,6 +48,12 @@ export interface ExamPatternSubject {
   paperNumber: number;
   paperName: string;
   sectionName: string | null;
+  sessionName: string | null;
+  sessionNumber: number | null;
+  moduleName: string | null;
+  moduleNumber: number | null;
+  weightage: string | null;
+  isQualifying: boolean;
   postName: string | null;
   subject: string;
   questions: number;
