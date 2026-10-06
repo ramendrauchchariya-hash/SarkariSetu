@@ -144,7 +144,7 @@ function departmentMatches(
 
 function searchMatches(
   query: string,
-  recruitment: DbRecruitment,
+  recruitment: RecruitmentWithOrg,
   aggregate: ReturnType<typeof getAggregate>
 ): boolean {
   const terms = normalizeText(query).split(' ').filter(Boolean);
