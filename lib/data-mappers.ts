@@ -188,6 +188,9 @@ export function recruitmentDetailToJobDetails(r: RecruitmentDetail): JobDetails 
       subject: e.subject,
       questions: e.questions ?? 0,
       marks: e.marks ?? 0,
+      duration: e.duration_minutes ? `${e.duration_minutes} min` : '—',
+      negativeMarking: e.negative_marking ?? null,
+      mode: e.mode ?? '—',
     }));
 
   const examPattern: ExamPattern | null = examPatternSubjects.length > 0 ? {
