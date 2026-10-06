@@ -7,6 +7,6 @@ export default function robots(): MetadataRoute.Robots {
       allow: '/',
       disallow: ['/admin', '/dashboard'],
     },
-    sitemap: 'https://sarkarisetu.in/sitemap.xml',
+    sitemap: 'https://sarkarisetu-beta.vercel.app/sitemap.xml',
   };
 }
