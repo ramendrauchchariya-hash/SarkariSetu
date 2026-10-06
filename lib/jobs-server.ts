@@ -34,10 +34,12 @@ type DbPost = {
   discipline: string | null;
   salary_min: number | null;
   salary_max: number | null;
+  job_type: string | null;
   vacancies?: Array<{
     id: string;
     vacancy_count: number;
     state_id: string | null;
+    category_name: string;
     state?: { id: string; name: string; slug: string } | null;
   }>;
 };
@@ -66,7 +68,7 @@ function normalizeText(value: string | null | undefined): string {
     .toLowerCase()
     .replace(/&/g, ' and ')
     .replace(/[^a-z0-9]+/g, ' ')
-    .replace(/\\s+/g, ' ')
+     .replace(/\s+/g, ' ')
     .trim();
 }
 
