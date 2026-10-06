@@ -30,7 +30,7 @@ export interface AdmitCardListing {
 }
 export interface AnswerKeyListing { id: string; title: string; organization: string; status: ListingStatus; releasedDate: string; }
 export interface AdmissionListing { id: string; institution: string; course: string; status: ListingStatus; applicationDeadline: string; }
-export interface ExamTool { slug: string; title: string; description: string; icon: string; }
+export interface ExamTool { slug: string; title: string; description: string; icon: string; href?: string; }
 export interface GuideArticle { id: string; title: string; excerpt: string; category: string; readTime: string; publishedDate: string; }
 export interface NavItem { label: string; href: string; description?: string; }
 
