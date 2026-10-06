@@ -42,8 +42,24 @@ export interface JobPosting {
 }
 export interface VacancyBreakdown { post: string; category: string; state: string; count: number; }
 export interface ApplicationFee { category: string; fee: string; }
-export interface ExamPatternSubject { subject: string; questions: number; marks: number; }
-export interface ExamPattern { subjects: ExamPatternSubject[]; totalQuestions: number; totalMarks: number; duration: string; negativeMarking: string | null; mode: string; }
+export interface ExamPatternSubject {
+  stageNumber: number;
+  stageName: string;
+  paperNumber: number;
+  paperName: string;
+  postName: string | null;
+  subject: string;
+  questions: number;
+  marks: number;
+}
+export interface ExamPattern {
+  subjects: ExamPatternSubject[];
+  totalQuestions: number;
+  totalMarks: number;
+  duration: string;
+  negativeMarking: string | null;
+  mode: string;
+}
 export interface ImportantDate { label: string; date: string | null; }
 export interface FaqItem { question: string; answer: string; }
 export interface OfficialLink { label: string; url: string; type: 'notification' | 'application' | 'website'; }
