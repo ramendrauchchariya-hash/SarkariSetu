@@ -136,28 +136,67 @@ export async function serverGetRecruitmentBySlug(slug: string): Promise<Recruitm
   };
 }
 
+const RELATED_RECRUITMENT_SELECT = `
+  *,
+  organization:organizations(
+    id, name, slug, short_name, official_website_url
+  ),
+  categories:recruitment_categories(
+    category:categories(id, name, slug)
+  ),
+  posts:posts(
+    id, salary_min, salary_max, vacancies:vacancies(vacancy_count)
+  )
+`;
+
 export async function serverGetRelatedRecruitments(
   recruitment: Pick<RecruitmentWithOrg, 'id' | 'organization_id' | 'department'>,
   limit = 4
 ): Promise<RecruitmentWithOrg[]> {
-  let query = supabaseAdmin
+  // Fetch a wider candidate pool instead of requiring the same organization.
+  // A recruitment may have no sibling jobs, and that previously made the
+  // "Similar Government Jobs" section empty or unrelated.
+  const { data } = await supabaseAdmin
     .from('recruitments')
-    .select(RECRUITMENT_SELECT)
+    .select(RELATED_RECRUITMENT_SELECT)
     .eq('is_published', true)
     .eq('is_archived', false)
     .neq('id', recruitment.id)
     .order('posted_date', { ascending: false, nullsFirst: false })
-    .limit(limit);
+    .limit(Math.max(limit * 5, 20));
 
-  if (recruitment.organization_id) {
-    query = query.eq('organization_id', recruitment.organization_id);
-  } else if (recruitment.department) {
-    query = query.eq('department', recruitment.department);
-  }
-
-  const { data } = await query;
   if (!data) return [];
-  return data.map(toRecruitmentWithOrg);
+
+  const candidates = data.map(toRecruitmentWithOrg);
+
+  const score = (candidate: RecruitmentWithOrg) => {
+    let value = 0;
+
+    if (recruitment.organization_id && candidate.organization_id === recruitment.organization_id) {
+      value += 100;
+    }
+    if (recruitment.department && candidate.department === recruitment.department) {
+      value += 60;
+    }
+
+    const currentOrg = recruitment.organization_id ? String(recruitment.organization_id) : '';
+    const candidateOrg = candidate.organization_id ? String(candidate.organization_id) : '';
+    if (currentOrg && candidateOrg === currentOrg) value += 20;
+
+    return value;
+  };
+
+  return candidates
+    .filter((candidate) => computeRecruitmentStatus(candidate) !== 'closed')
+    .sort((a, b) => {
+      const scoreDiff = score(b) - score(a);
+      if (scoreDiff !== 0) return scoreDiff;
+
+      const aDate = a.posted_date ?? a.created_at ?? '';
+      const bDate = b.posted_date ?? b.created_at ?? '';
+      return String(bDate).localeCompare(String(aDate));
+    })
+    .slice(0, limit);
 }
 
 export async function serverGetAllPublishedSlugs(): Promise<string[]> {
