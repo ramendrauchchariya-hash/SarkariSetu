@@ -46,7 +46,7 @@ function mapJobType(t: string | null): JobType {
   return jobTypeMap[t ?? 'permanent'] ?? 'permanent';
 }
 
-function listingMeta(r: RecruitmentWithOrg): { posts: number; salary: string } {
+function listingMeta(r: RecruitmentWithOrg): { posts: number; salary: string; salaryMin: number; salaryMax: number } {
   const raw = r as unknown as {
     posts?: Array<{
       id: string;
@@ -67,7 +67,7 @@ function listingMeta(r: RecruitmentWithOrg): { posts: number; salary: string } {
     .flatMap((p) => [p.salary_min, p.salary_max])
     .filter((v): v is number => typeof v === 'number' && v > 0);
 
-  if (salaryValues.length === 0) return { posts: vacancyTotal, salary: '—' };
+  if (salaryValues.length === 0) return { posts: vacancyTotal, salary: '—', salaryMin: 0, salaryMax: 0 };
 
   const min = Math.min(...salaryValues);
   const max = Math.max(...salaryValues);
@@ -76,6 +76,8 @@ function listingMeta(r: RecruitmentWithOrg): { posts: number; salary: string } {
   // the sum of vacancy_count across every post, not the number of post rows.
   return {
     posts: vacancyTotal,
+    salaryMin: min,
+    salaryMax: max,
     salary: min === max
       ? `₹${min.toLocaleString('en-IN')}`
       : `₹${min.toLocaleString('en-IN')} – ₹${max.toLocaleString('en-IN')}`,
