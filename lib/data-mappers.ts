@@ -84,6 +84,8 @@ function listingMeta(r: RecruitmentWithOrg): { posts: number; salary: string } {
 
 export function recruitmentToJobPosting(r: RecruitmentWithOrg): JobPosting {
   const status = computeRecruitmentStatus(r);
+  const meta = listingMeta(r);
+
   return {
     id: r.id,
     slug: r.slug,
@@ -95,9 +97,9 @@ export function recruitmentToJobPosting(r: RecruitmentWithOrg): JobPosting {
     state: r.location_type === 'state-specific' ? 'State Specific' : 'all-india',
     location: r.location_type === 'state-specific' ? 'State Specific' : 'All India',
     jobType: mapJobType(r.job_type),
-    vacancies: 0,
-    salaryMin: 0,
-    salaryMax: 0,
+    vacancies: meta.posts,
+    salaryMin: meta.salaryMin,
+    salaryMax: meta.salaryMax,
     applicationStart: r.application_start ?? '',
     applicationEnd: r.application_end ?? '',
     examDate: r.exam_date,
