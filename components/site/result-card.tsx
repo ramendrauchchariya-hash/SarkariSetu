@@ -24,7 +24,8 @@ export function ResultCard({ result, className }: ResultCardProps) {
   const iconName = resultTypeIcons[result.resultType] ?? 'FileCheck2';
   const Icon = (Icons[iconName as keyof typeof Icons] ??
     Icons.FileCheck2) as Icons.LucideIcon;
-  const typeConfig = resultTypeConfig[result.resultType];
+  // Be defensive: existing database rows may use a result type added after this UI config.
+  const typeConfig = resultTypeConfig[result.resultType] ?? resultTypeConfig['exam-result'];
 
   return (
     <Link href={`/results/${result.id}`} className="block">
