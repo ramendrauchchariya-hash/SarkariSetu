@@ -15,10 +15,17 @@ interface JobListingCardProps {
 }
 
 function formatSalary(min: number, max: number): string {
+  const validMin = Number.isFinite(min) && min > 0 ? min : null;
+  const validMax = Number.isFinite(max) && max > 0 ? max : null;
+  if (validMin === null && validMax === null) return 'NA';
+
   const fmt = (n: number) => n >= 100000
-    ? `\u20b9 ${(n / 100000).toFixed(n % 100000 === 0 ? 0 : 1)}L`
-    : `\u20b9 ${n.toLocaleString('en-IN')}`;
-  return `${fmt(min)} \u2013 ${fmt(max)}`;
+    ? `₹ ${(n / 100000).toFixed(n % 100000 === 0 ? 0 : 1)}L`
+    : `₹ ${n.toLocaleString('en-IN')}`;
+
+  if (validMin === null) return fmt(validMax!);
+  if (validMax === null || validMin === validMax) return fmt(validMin);
+  return `${fmt(validMin)} – ${fmt(validMax)}`;
 }
 
 export function JobListingCard({ job, className }: JobListingCardProps) {
