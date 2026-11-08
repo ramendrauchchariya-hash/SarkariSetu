@@ -70,10 +70,10 @@ function formatSalary(min: number, max: number): string {
 
   const fmt = (n: number) =>
     n >= 100000
-      ? \`₹ \${(n / 100000).toFixed(n % 100000 === 0 ? 0 : 1)}L\`
-      : \`₹ \${n.toLocaleString('en-IN')}\`;
+      ? `₹ ${(n / 100000).toFixed(n % 100000 === 0 ? 0 : 1)}L`
+      : `₹ ${n.toLocaleString('en-IN')}`;
 
-  if (hasMin && hasMax) return \`\${fmt(min)} – \${fmt(max)}\`;
+  if (hasMin && hasMax) return `${fmt(min)} – ${fmt(max)}`;
   return fmt(hasMin ? min : max);
 }
 
