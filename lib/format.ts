@@ -42,6 +42,8 @@ export function formatCount(n: number): string {
   return n.toString();
 }
 
-export function formatPosts(n: number): string {
+export function formatPosts(n: number | null | undefined): string {
+  // Missing/zero aggregate data means the vacancy count is unavailable, not zero vacancies.
+  if (typeof n !== 'number' || !Number.isFinite(n) || n <= 0) return 'NA';
   return n.toLocaleString('en-IN');
 }
