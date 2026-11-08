@@ -64,11 +64,28 @@ interface JobDetailsViewProps {
 }
 
 function formatSalary(min: number, max: number): string {
+  const hasMin = Number.isFinite(min) && min > 0;
+  const hasMax = Number.isFinite(max) && max > 0;
+  if (!hasMin && !hasMax) return 'NA (Not available)';
+
   const fmt = (n: number) =>
     n >= 100000
-      ? `\u20b9 ${(n / 100000).toFixed(n % 100000 === 0 ? 0 : 1)}L`
-      : `\u20b9 ${n.toLocaleString('en-IN')}`;
-  return `${fmt(min)} \u2013 ${fmt(max)}`;
+      ? \`₹ \${(n / 100000).toFixed(n % 100000 === 0 ? 0 : 1)}L\`
+      : \`₹ \${n.toLocaleString('en-IN')}\`;
+
+  if (hasMin && hasMax) return \`\${fmt(min)} – \${fmt(max)}\`;
+  return fmt(hasMin ? min : max);
+}
+
+function formatAvailablePosts(count: number): string {
+  return Number.isFinite(count) && count > 0 ? formatPosts(count) : 'NA (Not available)';
+}
+
+function formatPayLevel(value: string | null | undefined): string {
+  const normalized = value?.trim();
+  return normalized && normalized !== '—' && normalized !== '-' && normalized !== '0'
+    ? normalized
+    : 'NA (Not available)';
 }
 
 function getOfficialLinkIcon(type: OfficialLink['type']) {
@@ -127,7 +144,7 @@ export function JobDetailsView({ job, relatedJobs: relatedJobsProp = [] }: JobDe
   const quickOverview = [
     { icon: Building2, label: 'Organization', value: job.organization },
     { icon: Briefcase, label: 'Post', value: job.title },
-    { icon: Users, label: 'Vacancies', value: formatPosts(job.vacancies) },
+    { icon: Users, label: 'Vacancies', value: formatAvailablePosts(job.vacancies) },
     { icon: GraduationCap, label: 'Qualification', value: job.qualification.replace(/-/g, ' ') },
     { icon: FileText, label: 'Job Type', value: jobTypeLabel[job.jobType] },
     { icon: MapPin, label: 'Location', value: job.location },
@@ -352,14 +369,14 @@ export function JobDetailsView({ job, relatedJobs: relatedJobsProp = [] }: JobDe
                               </span>
                             </td>
                             <td className="px-4 py-2.5 text-muted-foreground">{v.state}</td>
-                            <td className="px-4 py-2.5 text-right font-semibold">{formatPosts(v.count)}</td>
+                            <td className="px-4 py-2.5 text-right font-semibold">{formatAvailablePosts(v.count)}</td>
                           </tr>
                         ))}
                       </tbody>
                       <tfoot>
                         <tr className="border-t-2 bg-muted/30 font-bold">
                           <td colSpan={3} className="px-4 py-3">Total Vacancies</td>
-                          <td className="px-4 py-3 text-right">{formatPosts(totalVacancies)}</td>
+                          <td className="px-4 py-3 text-right">{formatAvailablePosts(totalVacancies)}</td>
                         </tr>
                       </tfoot>
                     </table>
@@ -424,7 +441,7 @@ export function JobDetailsView({ job, relatedJobs: relatedJobsProp = [] }: JobDe
                     <Wallet className="h-4 w-4 text-primary" />
                     Pay Level
                   </span>
-                  <span className="text-sm font-semibold">{job.payLevel}</span>
+                  <span className="text-sm font-semibold">{formatPayLevel(job.payLevel)}</span>
                 </div>
                 <div className="flex items-center justify-between border-t pt-3">
                   <span className="text-sm text-muted-foreground">Pay Range</span>
