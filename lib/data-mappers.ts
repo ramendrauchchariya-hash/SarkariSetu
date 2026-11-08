@@ -67,7 +67,7 @@ function listingMeta(r: RecruitmentWithOrg): { posts: number; salary: string; sa
     .flatMap((p) => [p.salary_min, p.salary_max])
     .filter((v): v is number => typeof v === 'number' && v > 0);
 
-  if (salaryValues.length === 0) return { posts: vacancyTotal, salary: '—', salaryMin: 0, salaryMax: 0 };
+  if (salaryValues.length === 0) return { posts: vacancyTotal, salary: 'NA', salaryMin: 0, salaryMax: 0 };
 
   const min = Math.min(...salaryValues);
   const max = Math.max(...salaryValues);
